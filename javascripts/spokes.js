@@ -21,7 +21,7 @@ This file is part of SpokeDM.
 (function() {
   var SpokeMain, module;
 
-  module = angular.module('spokes', ['ngResource', 'SpokeUtilities']);
+  module = angular.module('spokes', ['ngResource', 'SpokeUtilities', '$strap.directives']);
 
   module.factory('DataCache', function() {
     var DataCache;

@@ -15,7 +15,7 @@ This file is part of SpokeDM.
     along with SpokeDM.  If not, see <http://www.gnu.org/licenses/>.
 ###
 
-module = angular.module 'spokes', ['ngResource','SpokeUtilities']
+module = angular.module 'spokes', ['ngResource','SpokeUtilities','$strap.directives']
 module.factory 'DataCache', () ->
 	DataCache = {}#possibly load in future from cookies or something like that
 		#uses the format "modelkey:key": json
