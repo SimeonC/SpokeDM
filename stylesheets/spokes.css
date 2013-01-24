@@ -1,0 +1,128 @@
+/*
+	This file is part of SpokeDM.
+
+    SpokeDM is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SpokeDM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with SpokeDM.  If not, see <http://www.gnu.org/licenses/>.
+*/
+/* line 31, ../sass/spokes.scss */
+span.icon-asterisk.required {
+  color: #ee5f5b;
+}
+
+/* line 38, ../sass/spokes.scss */
+div.spoke-viewport .geterrors * {
+  text-align: center;
+}
+/* line 43, ../sass/spokes.scss */
+div.spoke-viewport .spoke-table-input {
+  width: 88%;
+}
+/* line 49, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal table td.btn-group {
+  padding-bottom: 16px;
+  padding-top: 8px;
+}
+/* line 54, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover {
+  margin-left: 570px;
+  margin-top: 160px;
+  display: block;
+}
+/* line 60, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert .arrow::after {
+  border-right-color: #fcf8e3;
+}
+/* line 63, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert .popover-content {
+  color: #c09853;
+  background-color: #fcf8e3;
+  border-color: #fbeed5;
+}
+/* line 70, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert-success .arrow::after {
+  border-right-color: #dff0d8;
+}
+/* line 73, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert-success .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-success .popover-content {
+  color: #468847;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+/* line 80, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert-danger .arrow::after, div.spoke-viewport #typeEditModal div.typepopover.alert-error .arrow::after {
+  border-right-color: #f2dede;
+}
+/* line 83, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert-danger .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-danger .popover-content, div.spoke-viewport #typeEditModal div.typepopover.alert-error .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-error .popover-content {
+  color: #b94a48;
+  background-color: #f2dede;
+  border-color: #eed3d7;
+}
+/* line 90, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert-info .arrow::after {
+  border-right-color: #d9edf7;
+}
+/* line 93, ../sass/spokes.scss */
+div.spoke-viewport #typeEditModal div.typepopover.alert-info .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-info .popover-content {
+  color: #3a87ad;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+/* line 101, ../sass/spokes.scss */
+div.spoke-viewport div.expander, div.spoke-viewport div.title {
+  display: inline-block;
+  margin: 0;
+  cursor: pointer;
+}
+/* line 110, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-parents, div.spoke-viewport div.spoke-children {
+  overflow-y: auto;
+  overflow-x: none;
+}
+/* line 114, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-parents > div, div.spoke-viewport div.spoke-children > div {
+  padding: 6px 10px;
+  margin: 3px;
+}
+/* line 122, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-parents div.expander {
+  float: left;
+}
+/* line 125, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-parents div.title {
+  margin-left: 32px;
+}
+/* line 132, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-details form div.spoke-element .alert {
+  width: 240px;
+}
+/* line 136, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-details form div.spoke-element.spoke-display p {
+  margin-left: 24px;
+}
+/* line 142, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-children div.expander {
+  float: right;
+}
+/* line 144, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-children div.expander i {
+  margin-right: -3px;
+}
+/* line 148, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-children div.title {
+  margin-right: 32px;
+}
+/* line 151, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-children div.children-list {
+  margin-top: 12px;
+}

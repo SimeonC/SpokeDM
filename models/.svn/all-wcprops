@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/SpokeDM/!svn/ver/4/trunk/models
+END
+DemoType.cfc
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/SpokeDM/!svn/ver/6/trunk/models/DemoType.cfc
+END
+DemoChild.cfc
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/SpokeDM/!svn/ver/6/trunk/models/DemoChild.cfc
+END
+DemoParent.cfc
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/SpokeDM/!svn/ver/6/trunk/models/DemoParent.cfc
+END
+SpokeModel.cfc
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/SpokeDM/!svn/ver/6/trunk/models/SpokeModel.cfc
+END

@@ -1,0 +1,162 @@
+/*
+	This file is part of SpokeDM.
+
+    SpokeDM is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SpokeDM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with SpokeDM.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+$alert-color: #c09853;
+$alert-background-color: #fcf8e3;
+$alert-border-color: #fbeed5;
+$alert-success-color: #468847;
+$alert-success-background-color: #dff0d8;
+$alert-success-border-color: #d6e9c6;
+$alert-danger-color: #b94a48;
+$alert-danger-background-color: #f2dede;
+$alert-danger-border-color: #eed3d7;
+$alert-info-color: #3a87ad;
+$alert-info-background-color: #d9edf7;
+$alert-info-border-color: #bce8f1;
+
+span.icon-asterisk.required {
+	color: #ee5f5b;
+}
+
+div.spoke-viewport{
+	
+	.geterrors{
+		*{
+			text-align: center
+		}
+	}
+	
+	.spoke-table-input{
+		width: 88%;
+	}
+	
+	#typeEditModal 
+	{
+		table td.btn-group{
+			padding-bottom: 16px;
+			padding-top: 8px;
+		}
+		
+		div.typepopover{
+			margin-left: 570px;
+			margin-top: 160px;
+			display: block;
+		}
+		div.typepopover.alert{
+			.arrow::after{
+				border-right-color: $alert-background-color;
+			}
+			.popover-title, .popover-content{
+				color: $alert-color;
+				background-color: $alert-background-color;
+				border-color: $alert-border-color;
+			}
+		}
+		div.typepopover.alert-success{
+			.arrow::after{
+				border-right-color: $alert-success-background-color;
+			}
+			.popover-title, .popover-content{
+				color: $alert-success-color;
+				background-color: $alert-success-background-color;
+				border-color: $alert-success-border-color;
+			}
+		}
+		div.typepopover.alert-danger, div.typepopover.alert-error{
+			.arrow::after{
+				border-right-color: $alert-danger-background-color;
+			}
+			.popover-title, .popover-content{
+				color: $alert-danger-color;
+				background-color: $alert-danger-background-color;
+				border-color: $alert-danger-border-color;
+			}
+		}
+		div.typepopover.alert-info{
+			.arrow::after{
+				border-right-color: $alert-info-background-color;
+			}
+			.popover-title, .popover-content{
+				color: $alert-info-color;
+				background-color: $alert-info-background-color;
+				border-color: $alert-info-border-color;
+			}
+		}
+	}
+	
+	div.expander, div.title{
+		display: inline-block;
+		margin: 0;
+		cursor: pointer;
+	}
+	div.description{
+		
+	}
+	
+	div.spoke-parents, div.spoke-children{
+		overflow-y: auto;
+		overflow-x: none;
+		
+		> div{
+			padding: 6px 10px;
+			margin: 3px;
+			
+		}
+	}
+	
+	div.spoke-parents{
+		div.expander{
+			float: left;
+		}
+		div.title{
+			margin-left: 32px;
+		}
+	}
+	div.spoke-details{
+		form{
+			div.spoke-element{
+				.alert{
+					width: 240px;
+				}
+			}
+			div.spoke-element.spoke-display p{
+				margin-left: 24px;
+			}
+		}
+	}
+	div.spoke-children{
+		div.expander{
+			float: right;
+			i{
+				margin-right: -3px;
+			}
+		}
+		div.title{
+			margin-right: 32px;
+		}
+		div.children-list{
+			margin-top: 12px;
+			div.search-bar{
+				
+			}
+			div.list-details{
+				
+				div.child-element{}
+			}
+		}
+	}
+}
