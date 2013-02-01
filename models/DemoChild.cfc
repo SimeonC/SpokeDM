@@ -18,7 +18,7 @@
 	
 	<cffunction name="init">
 		<cfscript>
-			spokeInit(nameColumn="displayname", searchColumns="packagetype");
+			spokeInit(name="Demo Child", nameColumn="displayname", searchColumns="packagetype");
 			belongsTo("demoparent");
 			
 			property(name="packagetype", spokeOptions=["Good","Tiny","Odd"]);

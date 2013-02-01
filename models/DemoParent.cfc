@@ -20,7 +20,7 @@
 		<cfscript>
 			spokeInit(name="Spoke Demo Object");
 			belongsTo(name="demotype", spoketype=true);
-			hasMany("demochilds");//note that if the table was 'child' not 'demochild' we would define it as 'demochildren'
+			hasMany(name="demochilds");//note that if the table was 'child' not 'demochild' we would define it as 'demochildren'
 			
 			property(name="name", sql="CONCAT(name1, ' ', name2)", spokeDesc="Name1 and Name2 concatenated into one display field.");//mysql
 			//property(name="name", sql="name1 + ' ' + name2", spokeDesc="Name1 and Name2 concatenated into one display field.");//mssql

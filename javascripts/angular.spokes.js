@@ -47,4 +47,23 @@ This file is part of SpokeDM.
     };
   });
 
+  module.directive('ngHasfocus', function() {
+    return function($scope, $element, $attrs) {
+      $scope.$watch($attrs.ngHasfocus, function(newVal, oldVal) {
+        if (newVal) {
+          return $element[0].focus();
+        }
+      });
+      $element.bind('blur', function() {
+        return $scope.$apply($attrs.ngHasfocus + " = false");
+      });
+      $element.bind('keydown', function(e) {
+        return $scope.$apply($attrs.ngHasfocus + (e.which === 13 ? " = false" : " = true"));
+      });
+      return $element.bind('focus', function() {
+        return $scope.$apply($attrs.ngHasfocus + " = true");
+      });
+    };
+  });
+
 }).call(this);

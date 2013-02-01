@@ -14,115 +14,334 @@
     You should have received a copy of the GNU Affero General Public License
     along with SpokeDM.  If not, see <http://www.gnu.org/licenses/>.
 */
-/* line 31, ../sass/spokes.scss */
+/* line 37, ../sass/spokes.scss */
 span.icon-asterisk.required {
   color: #ee5f5b;
 }
 
-/* line 38, ../sass/spokes.scss */
+/* line 41, ../sass/spokes.scss */
+html, body {
+  height: 100%;
+}
+
+/* line 45, ../sass/spokes.scss */
+[ng-click] {
+  cursor: pointer;
+}
+
+/* line 49, ../sass/spokes.scss */
+div.spoke-viewport {
+  min-height: 100%;
+  position: relative;
+}
+/* line 54, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header, div.spoke-viewport div.row-fluid.spoke-footer {
+  background-color: white;
+}
+/* line 57, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header {
+  height: 45px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+/* line 63, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search {
+  -webkit-transition-property: height;
+  -moz-transition-property: height;
+  -ms-transition-property: height;
+  -o-transition-property: height;
+  transition-property: height;
+  -webkit-transition-duration: 1s;
+  -moz-transition-duration: 1s;
+  -ms-transition-duration: 1s;
+  -o-transition-duration: 1s;
+  transition-duration: 1s;
+  -webkit-transition-timing-function: ease;
+  -moz-transition-timing-function: ease;
+  -ms-transition-timing-function: ease;
+  -o-transition-timing-function: ease;
+  transition-timing-function: ease;
+  position: absolute;
+  height: 45px;
+  padding: 6px 15px;
+  margin: 0;
+  background-color: #b3b3b3;
+  border: 1px solid #8a8a8a;
+  border-radius: 22.5px;
+  z-index: 1000;
+  overflow: hidden;
+  box-shadow: 0px 4px 8px 1px #5a5a5a;
+}
+/* line 78, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search.searching {
+  -webkit-transition-property: height;
+  -moz-transition-property: height;
+  -ms-transition-property: height;
+  -o-transition-property: height;
+  transition-property: height;
+  -webkit-transition-duration: 1s;
+  -moz-transition-duration: 1s;
+  -ms-transition-duration: 1s;
+  -o-transition-duration: 1s;
+  transition-duration: 1s;
+  -webkit-transition-timing-function: ease;
+  -moz-transition-timing-function: ease;
+  -ms-transition-timing-function: ease;
+  -o-transition-timing-function: ease;
+  transition-timing-function: ease;
+  height: 450px;
+}
+/* line 86, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results {
+  top: 45px;
+  margin-top: 10px;
+  position: absolute;
+  left: 15px;
+  right: 15px;
+}
+/* line 94, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar i.grey {
+  color: #9e9e9e;
+}
+/* line 98, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar a.scroll-nav {
+  display: block;
+  float: left;
+  padding: 12px 10px 8px;
+  margin-left: -24px;
+  font-size: 20px;
+  font-weight: 200;
+  color: #777;
+  text-shadow: 0 1px 0 #fff;
+  text-decoration: none;
+}
+/* line 108, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar a.scroll-nav:hover {
+  text-decoration: none;
+  color: #555555;
+}
+/* line 112, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar a.scroll-nav.pull-right {
+  float: right;
+  margin-right: -30px;
+  margin-left: 0px;
+}
+/* line 119, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar div.scroller {
+  position: absolute;
+  left: 174px;
+  right: 0px;
+  overflow: hidden;
+}
+/* line 124, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar div.scroller.scroll-nav {
+  left: 185px;
+  right: 31px;
+}
+/* line 128, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar div.scroller ul.nav {
+  width: 10000px;
+  left: 0px;
+  -webkit-transition-property: left;
+  -moz-transition-property: left;
+  -ms-transition-property: left;
+  -o-transition-property: left;
+  transition-property: left;
+  -webkit-transition-duration: 0.5s;
+  -moz-transition-duration: 0.5s;
+  -ms-transition-duration: 0.5s;
+  -o-transition-duration: 0.5s;
+  transition-duration: 0.5s;
+  -webkit-transition-timing-function: ease;
+  -moz-transition-timing-function: ease;
+  -ms-transition-timing-function: ease;
+  -o-transition-timing-function: ease;
+  transition-timing-function: ease;
+}
+/* line 134, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar div.scroller ul.nav li i {
+  color: #a5a5a5;
+}
+/* line 138, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.navbar div.scroller ul.nav li.active i.icon-circle {
+  color: #468847;
+}
+/* line 145, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results p i.icon-circle.active {
+  color: #468847;
+}
+/* line 149, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.display {
+  padding: 0;
+}
+/* line 151, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.display div.loading {
+  text-align: center;
+  color: #a5a5a5;
+}
+/* line 156, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.display div.table-scroller-wrapper {
+  position: relative;
+}
+/* line 158, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.display div.table-scroller-wrapper div.table-scroller-inner {
+  overflow-y: auto;
+  max-height: 291px;
+  margin-top: 28px;
+}
+/* line 163, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.display div.table-scroller-wrapper div.table-scroller-inner thead tr {
+  position: absolute;
+  top: -28px;
+}
+/* line 170, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.results div.display table {
+  margin: 0;
+}
+/* line 176, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.search-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
+}
+/* line 181, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-header div.spoke-search div.search-bar input {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  width: auto;
+}
+/* line 190, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-content {
+  padding-top: 45px;
+  padding-bottom: 50px;
+}
+/* line 194, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-footer {
+  height: 50px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+/* line 200, ../sass/spokes.scss */
+div.spoke-viewport div.row-fluid.spoke-footer p {
+  margin: 15px 0 15px;
+}
+/* line 206, ../sass/spokes.scss */
 div.spoke-viewport .geterrors * {
   text-align: center;
 }
-/* line 43, ../sass/spokes.scss */
+/* line 211, ../sass/spokes.scss */
 div.spoke-viewport .spoke-table-input {
   width: 88%;
 }
-/* line 49, ../sass/spokes.scss */
+/* line 217, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal table td.btn-group {
   padding-bottom: 16px;
   padding-top: 8px;
 }
-/* line 54, ../sass/spokes.scss */
+/* line 222, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover {
   margin-left: 570px;
   margin-top: 160px;
   display: block;
 }
-/* line 60, ../sass/spokes.scss */
+/* line 227, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert .arrow::after {
   border-right-color: #fcf8e3;
 }
-/* line 63, ../sass/spokes.scss */
+/* line 230, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert .popover-content {
   color: #c09853;
   background-color: #fcf8e3;
   border-color: #fbeed5;
 }
-/* line 70, ../sass/spokes.scss */
+/* line 237, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert-success .arrow::after {
   border-right-color: #dff0d8;
 }
-/* line 73, ../sass/spokes.scss */
+/* line 240, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert-success .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-success .popover-content {
   color: #468847;
   background-color: #dff0d8;
   border-color: #d6e9c6;
 }
-/* line 80, ../sass/spokes.scss */
+/* line 247, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert-danger .arrow::after, div.spoke-viewport #typeEditModal div.typepopover.alert-error .arrow::after {
   border-right-color: #f2dede;
 }
-/* line 83, ../sass/spokes.scss */
+/* line 250, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert-danger .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-danger .popover-content, div.spoke-viewport #typeEditModal div.typepopover.alert-error .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-error .popover-content {
   color: #b94a48;
   background-color: #f2dede;
   border-color: #eed3d7;
 }
-/* line 90, ../sass/spokes.scss */
+/* line 257, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert-info .arrow::after {
   border-right-color: #d9edf7;
 }
-/* line 93, ../sass/spokes.scss */
+/* line 260, ../sass/spokes.scss */
 div.spoke-viewport #typeEditModal div.typepopover.alert-info .popover-title, div.spoke-viewport #typeEditModal div.typepopover.alert-info .popover-content {
   color: #3a87ad;
   background-color: #d9edf7;
   border-color: #bce8f1;
 }
-/* line 101, ../sass/spokes.scss */
+/* line 269, ../sass/spokes.scss */
 div.spoke-viewport div.expander, div.spoke-viewport div.title {
   display: inline-block;
   margin: 0;
   cursor: pointer;
 }
-/* line 110, ../sass/spokes.scss */
+/* line 278, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-parents, div.spoke-viewport div.spoke-children {
   overflow-y: auto;
   overflow-x: none;
 }
-/* line 114, ../sass/spokes.scss */
+/* line 282, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-parents > div, div.spoke-viewport div.spoke-children > div {
   padding: 6px 10px;
   margin: 3px;
 }
-/* line 122, ../sass/spokes.scss */
+/* line 290, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-parents div.expander {
   float: left;
 }
-/* line 125, ../sass/spokes.scss */
+/* line 293, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-parents button.btn.parent-link {
+  width: 102px;
+}
+/* line 296, ../sass/spokes.scss */
+div.spoke-viewport div.spoke-parents button.btn.parent-unlink {
+  margin-right: 6px;
+  padding-right: 4px;
+}
+/* line 300, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-parents div.title {
   margin-left: 32px;
 }
-/* line 132, ../sass/spokes.scss */
+/* line 307, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-details form div.spoke-element .alert {
   width: 240px;
 }
-/* line 136, ../sass/spokes.scss */
+/* line 311, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-details form div.spoke-element.spoke-display p {
   margin-left: 24px;
 }
-/* line 142, ../sass/spokes.scss */
+/* line 317, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-children div.expander {
   float: right;
 }
-/* line 144, ../sass/spokes.scss */
+/* line 319, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-children div.expander i {
   margin-right: -3px;
 }
-/* line 148, ../sass/spokes.scss */
+/* line 323, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-children div.title {
   margin-right: 32px;
 }
-/* line 151, ../sass/spokes.scss */
+/* line 326, ../sass/spokes.scss */
 div.spoke-viewport div.spoke-children div.children-list {
   margin-top: 12px;
 }

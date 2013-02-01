@@ -27,25 +27,32 @@
 		belongsTo also takes the argument spokename which is the display name of that relationship when showing this model.
 		We have extend the property call from cfwheels to have the additional params as follows:
 			property(name="columnname");
-				@param label: defines the label to be used on the front end
-				@param spokeType: A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown
+				@param name: label				required: No	type: string	defines the label to be used on the front end
+				@param name: spokeType:			required: No	type: string	A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown
 									NOTE that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.
-				@param spokeOptions: an array of strings that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
-				@param spokePlaceholder: Used as the default/unselected value in dropdowns or as the placeholder value in all other inputs as suitable (some don't support it, like display or checkboxes)
-				@param spokeDesc: Used as the description that is displayed next to the label on the form
-				@param spokeTip: displayed as a tooltip on the input
+				@param name: spokeOptions		required: No	type: string	an array of strings that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
+				@param name: spokePlaceholder	required: No	type: string	Used as the default/unselected value in dropdowns or as the placeholder value in all other inputs as suitable (some don't support it, like display or checkboxes)
+				@param name: spokeDesc			required: No	type: string	Used as the description that is displayed next to the label on the form
+				@param name: spokeTip			required: No	type: string	displayed as a tooltip on the input
+			
+			belongsTo();
+				@param name: spokeType			required: No	type: boolean	true will display on the front end as a dropdown not a related table
+				@param name: spokeBeforeList	required: No	type: string	the name of a function that returns a struct to filter this model when it is shown as a related list, for relating to a new parent.
+																				the function takes the optional parameter currentKey if being replaced
 		
-		Properties that are on the spoke model instance are:
-		spokesettings.Name: The display Name on the front end, defaults to modelName.
-		spokesettings.NameColumn: The Name of each instance (can be a composite column or a calculated column), defaults to 'name', errors if no name column.
-		spokesettings.istype: If this is true we treat this model as a type, defaults to false
-		spokesettings.DescColumn: The Description of each instance (can be a composite column or a calculated column), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
-		spokesettings.HiddenFields: A list of column names that should NOT be displayed on the front end form, these override the columnorder setting.
-		spokesettings.ColumnOrder: An array of column keys that reference elements in the spokesettings.ColumnMap, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
-		spokesettings.searchColumns: a list of columns that are used in searches in addition to name and description. If not set uses name and description only.
-		spokesettings.hidePrimaryKey: if true the primary key will not be shown in the view as a field, defaults to true
-		spokesettings.editorRoute: a set of params as in urlFor() used for when you do not wish to allow editing inside wheels - loading it in SpokeDM will load it in another window.
-		spokesettings.listRoute: a set of params as in urlFor() used for when you do not wish to show a list of this model in SpokeDM, will create a link that will load it in another window.
+		Properties that are on the spoke model instance are (all should be set through spokeInit()):
+			spokeInit()
+				@param name: Name			required: No	type: string	The display Name on the front end, defaults to modelName.
+				@param name: NameColumn		required: No	type: string	The Name of each instance (can be a composite column or a calculated column), defaults to 'name', errors if no name column.
+				@param name: istype			required: No	type: string	If this is true we treat this model as a type, defaults to false
+				@param name: DescColumn		required: No	type: string	The Description of each instance (can be a composite column or a calculated column), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
+				@param name: HiddenFields	required: No	type: string	A list of column names that should NOT be displayed on the front end form, these override the columnorder setting.
+				@param name: ColumnOrder	required: No	type: string	An array of column keys that reference elements in the spokesettings.ColumnMap, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
+				@param name: searchColumns	required: No	type: string	a list of columns that are used in searches in addition to name and description. If not set uses name and description only.
+				@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only columns on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
+				@param name: hidePrimaryKey	required: No	type: string	if true the primary key will not be shown in the view as a field, defaults to true
+				@param name: editorRoute	required: No	type: string	a set of params as in urlFor() used for when you do not wish to allow editing/viewing inside wheels - loading it in SpokeDM will load it in another window.
+				@param name: listRoute		required: No	type: string	a set of params as in urlFor() used for when you do not wish to show a list of this model in SpokeDM, will create a link that will load it in another window.
 		
 		NOTE: for NameColumn and DescColumn if you use a composite/calculated column include the table name!
 	--->
@@ -74,7 +81,7 @@
 	</cffunction>
 	<cffunction name="listFilter" access="public" returnType="struct" output="false" hint="Overwrite this if you wish to filter the list of the model instances, for example; by the current user, should return a struct that would be included with a findAll and sets the parameters: include, where.">
 		<cfscript>
-			return {};//in you're model overwrite this based on your authentication and model structures, ie return {"where": "userid = #SESSION.userid#"};
+			return {};//in your model overwrite this based on your authentication and model structures, ie return {"where": "userid = #SESSION.userid#"};
 		</cfscript>
 	</cffunction>
 	
@@ -90,6 +97,7 @@
 		<cfargument name="ColumnOrder" required="false" type="array" hint="An array of column names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order">
 		<cfargument name="HiddenFields" required="false" type="string" default="createdat,deletedat,updatedat" hint="An list of column names that should NOT be displayed on the front end form.">
 		<cfargument name="searchColumns" required="false" type="string" hint="a list of columns that are used in searches in addition to name and description. If not set uses name and description only.">
+		<cfargument name="searchOrderBy" required="false" type="string" hint="a order by clause for sorting search results, only columns on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function">
 		<cfargument name="hidePrimaryKey" required="false" type="boolean" default=true hint="Doesn't show the primary key column on the front end form - note that an enterprising user could still figure it out unless you use obfuscation">
 		<cfargument name="editorRoute" required="false" type="struct" hint="If this is supplied then this model will be edited via the page specified instead of in SpokeDM, is passed as params to URLFor()">
 		<cfargument name="listRoute" required="false" type="struct" hint="If this is supplied then this model will not list it's objects in Spoke DM but provide a link to the page specified, is passed as params to URLFor()">
@@ -103,6 +111,7 @@
 			if(StructKeyExists(arguments, "ColumnOrder")) variables.wheels.class.spokesettings.ColumnOrder = arguments.ColumnOrder;
 			variables.wheels.class.spokesettings.HiddenFields = arguments.HiddenFields;
 			if(StructKeyExists(arguments, "SearchColumns")) variables.wheels.class.spokesettings.SearchColumns = arguments.SearchColumns;
+			if(StructKeyExists(arguments, "searchOrderBy")) variables.wheels.class.spokesettings.searchOrderBy = arguments.searchOrderBy;
 			variables.wheels.class.spokesettings.hidePrimaryKey = arguments.hidePrimaryKey;
 			if(StructKeyExists(arguments, "listRoute")){
 				variables.wheels.class.spokesettings.listRoute = arguments.listRoute;
@@ -123,21 +132,21 @@
 	
 	<cffunction name="$spokeBeforeCreate">
 		<cfscript>
-			if(model(this.modelname()).modelPermissions() GTE 3 && this.instPermissions() GTE 3) return true;
+			if(model(this.modelname()).modelPermissions() >= 3 && this.instPermissions() >= 3) return true;
 			addErrorToBase("You do not have permission to Create a new object.");
 			return false;
 		</cfscript>
 	</cffunction>
 	<cffunction name="$spokeBeforeUpdate">
 		<cfscript>
-			if(model(this.modelname()).modelPermissions() GTE 2 && this.instPermissions() GTE 2) return true;
+			if(model(this.modelname()).modelPermissions() >= 2 && this.instPermissions() >= 2) return true;
 			addErrorToBase("You do not have permission to Update this object.");
 			return false;
 		</cfscript>
 	</cffunction>
 	<cffunction name="$spokeBeforeSave">
 		<cfscript>
-			if(!(model(this.modelname()).modelPermissions() GTE 2 && this.instPermissions() GTE 2)){
+			if(!(model(this.modelname()).modelPermissions() >= 2 && this.instPermissions() >= 2)){
 				addErrorToBase("You do not have permission to Save this object.");
 				return false;
 			}
@@ -146,7 +155,7 @@
 	</cffunction>
 	<cffunction name="$spokeBeforeDelete">
 		<cfscript>
-			if(model(this.modelname()).modelPermissions() GTE 4 && this.instPermissions() GTE 4) return true;
+			if(model(this.modelname()).modelPermissions() >= 4 && this.instPermissions() >= 4) return true;
 			addErrorToBase("You do not have permission to Delete this object.");
 			return false;
 		</cfscript>
@@ -159,17 +168,18 @@
 				this[this.$foreignKey(key)] = this[variables.wheels.class.associations[key].modelname];
 			}
 			//create the date objects to save
-			for(var key in variables.wheels.class.properties)
-				if(StructKeyExists(this, key) && Len(this[key]) //check if value exists - if not we don't need to process it
-					&& (variables.wheels.class.properties[key].validationType EQ "datetime"
-					|| variables.wheels.class.properties[key].type EQ 'CF_SQL_DATE'
-					|| variables.wheels.class.properties[key].type EQ 'CF_SQL_TIME'
+			var changedProps = ListToArray(this.changedProperties());
+			for(var key in changedProps)
+				if(StructKeyExists(this, key) && Len(this[key]) && StructKeyExists(variables.wheels.class.properties, key) //check if value exists - if not we don't need to process it
+					&& (variables.wheels.class.properties[key].validationType == "datetime"
+					|| variables.wheels.class.properties[key].type == 'CF_SQL_DATE'
+					|| variables.wheels.class.properties[key].type == 'CF_SQL_TIME'
 					|| (
 						StructKeyExists(variables.wheels.class.mapping, key)
 						&& StructKeyExists(variables.wheels.class.mapping[key], "spoketype")
-						&& (variables.wheels.class.mapping[key].spoketype EQ "datetime"
-							|| variables.wheels.class.mapping[key].spoketype EQ "time"
-							|| variables.wheels.class.mapping[key].spoketype EQ "date"
+						&& (variables.wheels.class.mapping[key].spoketype == "datetime"
+							|| variables.wheels.class.mapping[key].spoketype == "time"
+							|| variables.wheels.class.mapping[key].spoketype == "date"
 						)
 					)
 				)){
@@ -187,9 +197,9 @@
 	<cffunction name="spokeDataLoad" access="public" returnType="struct" output="false" hint="returns a struct of DATA to be set for this model, includes types but doesn't include associated parents and children">
 		<cfscript>
 			var modelPerms = model(this.modelname()).modelPermissions();
-			if(modelPerms EQ 0) return {"errors": [{"message": "You do not have permission to view that."}]};
+			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
 			var instPerms = this.instPermissions();
-			if(instPerms EQ 0)
+			if(instPerms == 0)
 				return {
 					"name": this.spokeDisplayName(false),
 					"warning": "You do not have permissions to view this.",
@@ -213,7 +223,7 @@
 			if(StructKeyExists(arguments, "newmodelkey")) newInst = this.$associationMethod(missingMethodName = "new" & Capitalize(arguments.newmodelkey), missingMethodArguments = {});
 			else newInst = this.new();
 			
-			if(newinst.modelPermissions() LTE 2) return {"errors": [{"message": "You do not have permission to create a new instance."}]};
+			if(newinst.modelPermissions() <= 2) return {"errors": [{"message": "You do not have permission to create a new instance."}]};
 			var result = {
 				"name": newInst.spokeDisplayName(false),
 				"properties": newInst.spokeProperties(),
@@ -230,13 +240,13 @@
 	<cffunction name="spokeTypeload" access="public" returnType="struct" output="false" hint="returns a struct of DATA such that this model may be edited as a list of types">
 		<cfscript>
 			var modelPerms = model(this.modelname()).modelPermissions();
-			if(modelPerms EQ 0) return {"errors": [{"message": "You do not have permission to view that."}]};
+			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
 			var workingColumnOrder = this.spokeColumns();
 			var columns = [];
 			for(var col in workingColumnOrder) ArrayAppend(columns, this.$spokeProperty(col));
 			return {
 				"name": this.spokeDisplayName(),
-				"list": this.spokeList(true),
+				"listing": this.spokeList(true),
 				"columns": columns,
 				"permissions": modelPerms,
 				"errors": []
@@ -247,11 +257,36 @@
 	<cffunction name="spokeListload" access="public" returnType="struct" output="false" hint="returns an array listing all instances viewable">
 		<cfscript>
 			var modelPerms = model(this.modelname()).modelPermissions();
-			if(modelPerms EQ 0) return {"errors": [{"message": "You do not have permission to view that."}]};
+			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
 			return {
 				"name": this.spokeDisplayName(),
 				"listing": this.spokeList(),//use listing so we don't conflict with the list function in the javascript
 				"permissions": modelPerms,
+				"errors": []
+			};
+		</cfscript>
+	</cffunction>
+	
+	<cffunction name="spokeRelinkParent" access="public" returnType="struct" output="false" hint="returns an array listing all instances viewable">
+		<cfargument name="parentName" required="true" type="string" hint="The name of the RELATIONSHIP we are linking through">
+		<cfscript>
+			if(!StructKeyExists(variables.wheels.class.associations, arguments.parentName)) return {"errors": [{"message": "You do not have permission to change/view this."}]};//catches people snooping around
+			var assoc = variables.wheels.class.associations[arguments.parentName];
+			if(assoc.type != "belongsTo") return {"errors": [{"message":"An error has occured, code: SM271, please contact your System Developer."}]};
+			var parentModel = model(assoc.modelname);
+			var parentPerms = parentModel.modelPermissions();
+			var foreignKey = (StructKeyExists(assoc, "foreignKey"))
+				?assoc.foreignKey
+				:(Singularize(arguments.parentName)&"id");
+			if(model(this.modelname()).modelPermissions() <= 1) return {"errors": [{"message": "You do not have permission to change/view this."}]};
+			return {
+				"name": parentModel.spokeDisplayName(),
+				"listing"://use listing so we don't conflict with the list function in the javascript
+					(StructKeyExists(assoc, "spokeBeforeList") && assoc.spokeBeforeList != "")
+						?parentModel.spokeList(passThrough=$invoke(method=assoc.spokeBeforeList, invokeArgs={"currentKey": this[foreignKey]}))
+						:parentModel.spokeList(),
+				"propertyname": foreignKey,
+				"permissions": parentPerms,
 				"errors": []
 			};
 		</cfscript>
@@ -272,9 +307,9 @@
 		<cfargument name="plural" type="boolean" required="false" default=true>
 		<cfscript>
 			var matches = REFindNoCase("\b\w*$", arguments.string, 1, true).pos;
-			if(ArrayLen(matches) && matches[1] GT 0)
-				if(arguments.plural) return Left(arguments.string, matches[ArrayLen(matches)]) & Pluralize(Right(arguments.string, Len(arguments.string) - matches[ArrayLen(matches)]));
-				else return Left(arguments.string, matches[ArrayLen(matches)]) & Singularize(Right(arguments.string, Len(arguments.string) - matches[ArrayLen(matches)]));
+			if(ArrayLen(matches) && matches[ArrayLen(matches)] GT 1)
+				if(arguments.plural) return Left(arguments.string, matches[ArrayLen(matches)] - 1) & Capitalize(Pluralize(Right(arguments.string, Len(arguments.string) - matches[ArrayLen(matches)] + 1)));
+				else return Left(arguments.string, matches[ArrayLen(matches)] - 1) & Capitalize(Singularize(Right(arguments.string, Len(arguments.string) - matches[ArrayLen(matches)] + 1)));
 			else
 				if(arguments.plural) return Pluralize(arguments.string);
 				else return Singularize(arguments.string);
@@ -283,15 +318,17 @@
 	
 	<cffunction name="$spokeValidityCheck" access="private" returnType="void" output="false" hint="enforces the settings that spoke models must have, for now we just check that there is one singular primary key">
 		<cfscript>
-			if(ListLen(this.primaryKeys()) NEQ 1) throw(type="spokeModelException", message="There was no suitable single primary key on ""#this.modelName()#"", value: #this.primaryKeys()#");
+			if(ListLen(this.primaryKeys()) != 1) throw(type="spokeModelException", message="There was no suitable single primary key on ""#this.modelName()#"", value: #this.primaryKeys()#");
 		</cfscript>
 	</cffunction>
 	
 	<cffunction name="spokeList" access="public" returnType="array" output="false" hint="used to return a list of all the instances of the object - used for types mainly">
 		<cfargument name="editing" type="boolean" required="false" default="false" hint="whether to show all the fields or just the composites, restricted to types">
+		<cfargument name="passThrough" type="struct" required="false" hint="this is passed through to the findAll arguments, where clauses can be passed through this argument">
 		<cfscript>
+			if(!StructKeyExists(arguments, "passThrough")) arguments.passThrough = {};
 			if(arguments.editing && this.spokeIsType()){
-				var findArgs = this.$spokeFindAllGenerator();
+				var findArgs = this.$spokeFindAllGenerator(argumentCollection=arguments.passThrough);
 				if(Len(this.primaryKey()) && ListFindNoCase(this.columnNames(), this.primaryKey())) findArgs.select = "#this.primaryKey()# as 'key'," & ListDeleteAt(this.columnNames(), ListFindNoCase(this.columnNames(), this.primaryKey()));
 				return $spokeQueryToStructs(this.findAll(argumentCollection=findArgs), this.modelname());
 			}
@@ -302,7 +339,7 @@
 				//if cached list exists, use it!
 				list = APPLICATION.spokeTypesCache[this.modelname()];
 			else{//no cached list, so load it and then cache it!
-				list = $spokeQueryToStructs(this.findAll(argumentCollection=this.$spokeFindAllGenerator()), this.modelname());
+				list = $spokeQueryToStructs(this.findAll(argumentCollection=this.$spokeFindAllGenerator(argumentCollection=arguments.passThrough)), this.modelname());
 				//cache the list if type
 				if(this.spokeIsType()) APPLICATION.spokeTypesCache[this.modelname()] = list;
 			}
@@ -338,7 +375,7 @@
 			for(var key in variables.wheels.class.associations){
 				if(StructKeyExists(variables.wheels.class.spokesettings, "hiddenfields") && ListContains(variables.wheels.class.spokesettings.hiddenfields, key)) continue;
 				//remove parent records, load the types
-				if(variables.wheels.class.associations[key].type EQ "belongsTo" && (var listindex = ListFindNoCase(properties, this.$foreignKey(key)))){
+				if(variables.wheels.class.associations[key].type == "belongsTo" && (var listindex = ListFindNoCase(properties, this.$foreignKey(key)))){
 					if(StructKeyExists(variables.wheels.class.associations[key], "spoketype") && variables.wheels.class.associations[key].spoketype && (!StructKeyExists(variables.wheels.class.spokesettings, "columnOrder") || ArrayContainsNoCase(variables.wheels.class.spokesettings.columnOrder, key))){
 						types &= "," & key;
 					}else if(var index = ArrayFindNoCase(workingColumnOrder, this.$foreignKey(key))) ArrayDeleteAt(workingColumnOrder, index);
@@ -348,17 +385,17 @@
 			var results = {};
 			if(Len(types)){//load and deal with types if there were any
 				types = ListToArray(Right(types, Len(types) - 1));//remove leading comma
-				for(var i = 1; i LTE ArrayLen(types); i++){
+				for(var i = 1; i <= ArrayLen(types); i++){
 					var typemodel = model(variables.wheels.class.associations[types[i]].modelName);
-					if(this.instPermissions() GTE 2)
+					if(this.instPermissions() >= 2)
 						results[this.$foreignKey(types[i])] = {
 							"name": typemodel.modelname(),
 							"label": typemodel.spokeDisplayName(false),
 							"value": this.$spokeValue(this.$foreignKey(types[i])),
-							"list": typemodel.spokeList(),
+							"listing": typemodel.spokeList(),
 							"type": "dropdown",
-							"editable": typemodel.modelPermissions() GTE 2,
-							"required": variables.wheels.class.properties[this.$foreignKey(types[i])].nullable EQ "NO"//enforce boolean (if not nullable then required)
+							"editable": typemodel.modelPermissions() >= 2,
+							"required": variables.wheels.class.properties[this.$foreignKey(types[i])].nullable == "NO"//enforce boolean (if not nullable then required)
 						};
 					else
 						results[this.$foreignKey(types[i])] = {
@@ -370,15 +407,15 @@
 				}
 			}
 			properties = ListToArray(properties);
-			for(var i = 1; i LTE ArrayLen(properties); i++){
-				if(StructKeyExists(variables.wheels.class.properties, properties[i]) && variables.wheels.class.properties[properties[i]].validationType EQ "binary") continue;//ignore binary for now
+			for(var i = 1; i <= ArrayLen(properties); i++){
+				if(StructKeyExists(variables.wheels.class.properties, properties[i]) && variables.wheels.class.properties[properties[i]].validationType == "binary") continue;//ignore binary for now
 				results[properties[i]] = $spokeProperty(properties[i]);
 				results[properties[i]]["value"] = this.$spokeValue(properties[i]);
-				if(results[properties[i]].type EQ "boolean") results[properties[i]].value = ((results[properties[i]].value EQ "")?false:((results[properties[i]].value)?true:false));//force bits, yes/no etc to be true false values to work with angularjs checkbox settings
-				if(results[properties[i]].type EQ "datetime" OR results[properties[i]].type EQ "date" OR results[properties[i]].type EQ "time") results[properties[i]]["value"] = '#DateFormat(results[properties[i]]["value"], APPLICATION.spokeDateFormat)# #TimeFormat(results[properties[i]]["value"], APPLICATION.spokeTimeFormat)#';
+				if(results[properties[i]].type == "boolean") results[properties[i]].value = ((results[properties[i]].value == "")?false:((results[properties[i]].value)?true:false));//force bits, yes/no etc to be true false values to work with angularjs checkbox settings
+				if(results[properties[i]].type == "datetime" || results[properties[i]].type == "date" || results[properties[i]].type == "time") results[properties[i]]["value"] = '#DateFormat(results[properties[i]]["value"], APPLICATION.spokeDateFormat)# #TimeFormat(results[properties[i]]["value"], APPLICATION.spokeTimeFormat)#';
 			}
 			var returnArray = [];
-			for(var i = 1; i LTE ArrayLen(workingColumnOrder); i++) if(StructKeyExists(results, workingColumnOrder[i])) ArrayAppend(returnArray, results[workingColumnOrder[i]]);
+			for(var i = 1; i <= ArrayLen(workingColumnOrder); i++) if(StructKeyExists(results, workingColumnOrder[i])) ArrayAppend(returnArray, results[workingColumnOrder[i]]);
 			return returnArray;
 		</cfscript>
 	</cffunction>
@@ -402,14 +439,15 @@
 				//execute ONLY WHEN NECESSARY - both OR parents only OR children only
 				if((StructKeyExists(variables.wheels.class.associations[key], "spoketype") && !variables.wheels.class.associations[key].spoketype)
 					|| !StructKeyExists(arguments, "childrenOnly")
-					|| (!arguments.childrenOnly && variables.wheels.class.associations[key].type EQ "belongsTo")
+					|| (!arguments.childrenOnly && variables.wheels.class.associations[key].type == "belongsTo")
 					|| (arguments.childrenOnly
-						&& (variables.wheels.class.associations[key].type EQ "hasOne" || variables.wheels.class.associations[key].type EQ "hasMany"))){
+						&& (variables.wheels.class.associations[key].type == "hasOne" || variables.wheels.class.associations[key].type == "hasMany"))){
 					if(StructKeyExists(variables.wheels.class.associations[key], "shortcut") && Len(variables.wheels.class.associations[key].shortcut)){
 						//setup
 						var returnStruct = {"modelkey": Singularize(variables.wheels.class.associations[key].shortcut)};
 						var shortcutModel = model(Singularize(variables.wheels.class.associations[key].shortcut));
-						
+						returnStruct["permissions"] = shortcutModel.modelPermissions();
+						if(returnStruct.permissions == 1) continue;
 						//allways hasMany so pluralize
 						returnStruct["name"] = (StructKeyExists(variables.wheels.class.associations[key], "spokename"))
 							? Capitalize($spokePluralize(variables.wheels.class.associations[key].spokename))
@@ -417,7 +455,7 @@
 						
 						if(Len(shortcutModel.externalEditorURL())) returnStruct["editor"] = shortcutModel.externalEditorURL();
 						if(Len(shortcutModel.externalListURL())){
-							returnStruct["list"] = shortcutModel.externalListURL();
+							returnStruct["listing"] = shortcutModel.externalListURL();
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //the $associationMethod from onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
 							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(
@@ -428,27 +466,26 @@
 						//setup
 						var returnStruct = {"modelkey": variables.wheels.class.associations[key].modelname};
 						var childModel = model(variables.wheels.class.associations[key].modelname);
-						if(childModel.spokeIsType() || childModel.modelPermissions() EQ 0) continue;//types do not show up in associations, also do not show any that the current permissions cannot read
+						returnStruct["permissions"] = childModel.modelPermissions();
+						if(childModel.spokeIsType() || returnStruct.permissions == 0) continue;//types do not show up in associations, also do not show any that the current permissions cannot read
 						
-						var pluralizeName = !((StructKeyExists(arguments, "childrenOnly") && !arguments.childrenOnly) || variables.wheels.class.associations[key].type EQ "belongsTo");
-						if(key EQ variables.wheels.class.associations[key].modelname) returnStruct["name"] = childModel.spokeDisplayName(pluralizeName);
-						else returnStruct["name"] = Capitalize($spokePluralize(
+						var pluralizeName = !((StructKeyExists(arguments, "childrenOnly") && !arguments.childrenOnly) || variables.wheels.class.associations[key].type == "belongsTo");
+						returnStruct["name"] = 
 							(StructKeyExists(variables.wheels.class.associations[key], "spokename"))
-								?variables.wheels.class.associations[key].spokename
-								:Humanize(key)
-							, pluralizeName));
+								?Capitalize($spokePluralize(variables.wheels.class.associations[key].spokename, pluralizeName))
+								:childModel.spokeDisplayName(pluralizeName);
 						//need some kind of optimisation? different display for REALLY BIG lists - only if someone complains.
 						//returnStruct["count"] = model.$associationMethod(missingMethodName = key & "Count", missingMethodArguments = {}); for now angular can handle this part
 						if(Len(childModel.externalEditorURL())) returnStruct["editor"] = childModel.externalEditorURL();
 						if(Len(childModel.externalListURL())){
-							returnStruct["list"] = childModel.externalListURL();
+							returnStruct["listing"] = childModel.externalListURL();
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //the $associationMethod from onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
 							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(missingMethodName = key, missingMethodArguments = childModel.$spokeFindAllGenerator()), childModel.modelname());
 					}
 					
 					if(StructKeyExists(arguments, "childrenOnly")) ArrayAppend(result, returnStruct);
-					else if(variables.wheels.class.associations[key].type EQ "belongsTo") ArrayAppend(result.parents, returnStruct);
+					else if(variables.wheels.class.associations[key].type == "belongsTo") ArrayAppend(result.parents, returnStruct);
 					else ArrayAppend(result.children, returnStruct);
 				}
 			}
@@ -456,17 +493,16 @@
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="spokeSearch" access="public" returnType="array" output="false" hint="takes in a search value, an optional column filter and returns an array of spoke set data. The model must have at least ONE column that has a validation type of string - ie text/varchar">
+	<cffunction name="spokeSearch" access="public" returnType="struct" output="false" hint="takes in a search value, an optional record limit and returns an array of spoke set data. The model must have at least ONE column that has a validation type of string - ie text/varchar, usually nameColumn">
 		<cfargument name="searchValue" required="true" type="string" hint="the string to search within the fields">
 		<cfargument name="maxRows" required="false" type="numeric" default=10 hint="Maximum rows to return, default is based on sensible height of a box and scrollability and just a random number I liked at the time">
-		<cfargument name="orderBy" required="false" type="string" hint="Can be added to if there should be ordering placed on the search results">
 		<cfscript>
 			if(!Len(arguments.searchValue)) return [];//return nothing if no search value
 			var whereClause = "";
 			if(StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)){
 				var columnArray = ListToArray(variables.wheels.class.spokesettings.searchColumns);
-				for(var i = 1; i LTE ArrayLen(columnArray); i++){
-					if(StructKeyExists(variables.wheels.class.properties, columnArray[i]) && variables.wheels.class.properties[columnArray[i]].validationType EQ "string"){//only filter on valid, non calculated, string fields.
+				for(var i = 1; i <= ArrayLen(columnArray); i++){
+					if(StructKeyExists(variables.wheels.class.properties, columnArray[i]) && variables.wheels.class.properties[columnArray[i]].validationType == "string"){//only filter on valid, non calculated, string fields.
 						whereClause &= " OR #variables.wheels.class.properties[columnArray[i]].column# LIKE '%#arguments.searchValue#%'";
 					}
 				}
@@ -474,21 +510,26 @@
 			//add filtering on the dynamic name and description columns
 			if(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn)) whereClause &= " OR (#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.NameColumn]# LIKE '%#arguments.searchValue#%'";
 			else if(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")) whereClause &= " OR #variables.wheels.class.spokesettings.NameColumn# LIKE '%#arguments.searchValue#%'";
-			else if(StructKeyExists(this.columns(), "name")) whereClause &= " OR name LIKE '%#arguments.searchValue#%'";
-			if(StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescColumn)) whereClause &= " OR #variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescColumn]# LIKE '%#arguments.searchValue#%'";
-			else whereClause &= " OR #variables.wheels.class.spokesettings.DescColumn# LIKE '%#arguments.searchValue#%'";
+			else if(ListContainsNoCase(this.propertyNames(), "name")) whereClause &= " OR name LIKE '%#arguments.searchValue#%'";
+			if(StructKeyExists(variables.wheels.class.spokesettings, "DescColumn"))
+				if(StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescColumn)) whereClause &= " OR #variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescColumn]# LIKE '%#arguments.searchValue#%'";
+				else whereClause &= " OR #variables.wheels.class.spokesettings.DescColumn# LIKE '%#arguments.searchValue#%'";
 			if(!Len(whereClause)) return [];//return nothing if no valid search columns
 			whereClause = Right(whereClause, Len(whereClause) - 4);//remove the first OR statement
-			return $spokeQueryToStructs(this.findAll(argumentCollection=this.$spokeFindAllGenerator(where=whereClause, maxRows=arguments.maxRows)), '', '', false);
+			var findAllGen = this.$spokeFindAllGenerator(where=whereClause, maxRows=arguments.maxRows, orderBy=(StructKeyExists(variables.wheels.class.spokesettings, "searchOrderBy"))?variables.wheels.class.spokesettings.searchOrderBy:"");
+			return {
+				"totalcount": this.count(where=findAllGen.where),
+				"query": $spokeQueryToStructs(this.findAll(argumentCollection=findAllGen), '', '', false)
+			};
 		</cfscript>
 	</cffunction>
 	
 	<cffunction name="$spokeProperty" access="public" returnType="struct" hint="Calculates all static values about a passed in property">
 		<cfargument name="property" type="string" required="true" hint="the name of the property to generate for">
 		<cfscript>
-			if(this.instPermissions() LT 2) return {
+			if(this.instPermissions() < 2) return {
 				"label": Capitalize(
-					(arguments.property EQ this.primarykey())?"key":
+					(arguments.property == this.primarykey())?"key":
 					(StructKeyExists(variables.wheels.class.mapping, arguments.property) && StructKeyExists(variables.wheels.class.mapping[arguments.property], "label"))
 					?
 						variables.wheels.class.mapping[arguments.property].label
@@ -496,20 +537,20 @@
 						arguments.property),
 				"type": "display",
 				"description": (StructKeyExists(variables.wheels.class.mapping, arguments.property) && StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokedesc"))?variables.wheels.class.mapping[arguments.property].spokedesc:"",
-				"name": (arguments.property EQ this.primarykey())?"key":arguments.property,
+				"name": (arguments.property == this.primarykey())?"key":arguments.property,
 				"required": false
 			};
-			var result = {"label": Capitalize((arguments.property EQ this.primarykey())?"key":arguments.property)};//defaults to the columnname
+			var result = {"label": Capitalize((arguments.property == this.primarykey())?"key":arguments.property)};//defaults to the columnname
 			
 			//set types and inherently anything we need off the class.properties struct
 			//types are: display, integer, string, datetime, boolean, float, binary, array(display only), struct(display only)
 			if(StructKeyExists(variables.wheels.class.properties, arguments.property)){
 				//generate defaults
-				if(variables.wheels.class.properties[arguments.property].type EQ "CF_SQL_DATE") result["type"] = "date";
-				else if(variables.wheels.class.properties[arguments.property].type EQ "CF_SQL_TIME") result["type"] = "time";
+				if(variables.wheels.class.properties[arguments.property].type == "CF_SQL_DATE") result["type"] = "date";
+				else if(variables.wheels.class.properties[arguments.property].type == "CF_SQL_TIME") result["type"] = "time";
 				else result["type"] = variables.wheels.class.properties[arguments.property].validationType;
 				
-				result["required"] = variables.wheels.class.properties[arguments.property].nullable EQ "NO";//enforce boolean representation of required based on nullable database value - please note that if a boolean field is required it must be checked...
+				result["required"] = variables.wheels.class.properties[arguments.property].nullable == "NO";//enforce boolean representation of required based on nullable database value - please note that if a boolean field is required it must be checked...
 			}else if(StructKeyExists(variables.wheels.class.calculatedProperties, arguments.property)) result["type"] = "display";
 			else result["type"] = "string";//default to string representation
 			
@@ -519,14 +560,14 @@
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "label")) result["label"] = Capitalize(variables.wheels.class.mapping[arguments.property].label)
 				//check for spoke settings
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokeoptions") && isArray(variables.wheels.class.mapping[arguments.property].spokeoptions)){
-					result["list"] = variables.wheels.class.mapping[arguments.property].spokeoptions;
+					result["listing"] = variables.wheels.class.mapping[arguments.property].spokeoptions;
 					result["type"] = "dropdown";
-				}else if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spoketype") && variables.wheels.class.mapping[arguments.property].spoketype NEQ "dropdown") result["type"] = variables.wheels.class.mapping[arguments.property].spoketype;
+				}else if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spoketype") && variables.wheels.class.mapping[arguments.property].spoketype != "dropdown") result["type"] = variables.wheels.class.mapping[arguments.property].spoketype;
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokeplaceholder")) result["placeholder"] = variables.wheels.class.mapping[arguments.property].spokeplaceholder;
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spoketip")) result["tip"] = variables.wheels.class.mapping[arguments.property].spoketip;
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokedesc")) result["description"] = variables.wheels.class.mapping[arguments.property].spokedesc;
 			}
-			result["name"] = (arguments.property EQ this.primarykey())?"key":arguments.property;
+			result["name"] = (arguments.property == this.primarykey())?"key":arguments.property;
 			return result;
 		</cfscript>
 	</cffunction>
@@ -572,7 +613,7 @@
 	<cffunction name="$spokeQueryToStructs" access="private" returnType="array" output="false" hint="prepares a query to be sent spoke style! Largely includes converting it to an array of structs so it plays nicely with angular">
 		<cfargument name="query" required="true" type="query" hint="the query to convert">
 		<cfscript>
-			if(arguments.query.recordcount EQ 0) return [];
+			if(arguments.query.recordcount == 0) return [];
 			//used to use $serializeQueryToStructs, but we do NOT want to initialise objects
 			var result = [];
 			for (var i=1; i <= arguments.query.recordCount; i++) ArrayAppend(result, $spokeQueryRowToStruct(arguments.query, i));
@@ -587,9 +628,9 @@
 			var columnNames = ListToArray(query.columnList);
 			var metadata = GetMetadata(query);
 			var row = {};
-			for(var i = 1; i LTE ArrayLen(columnNames); i++){
-				if(columnNames[i] EQ 'key') row[columnNames[i].toLowerCase()] = arguments.query[columnNames[i]][arguments.row];
-				if(metadata[i].typeName EQ "TIMESTAMP" && isDate(arguments.query[columnNames[i]])) row[columnNames[i].toLowerCase()] = '#DateFormat(arguments.query[columnNames[i]][arguments.row], APPLICATION.spokeDateFormat)# #TimeFormat(arguments.query[columnNames[i]][arguments.row], APPLICATION.spokeTimeFormat)#';//using ISO 8601 format with timezone
+			for(var i = 1; i <= ArrayLen(columnNames); i++){
+				if(columnNames[i] == 'key') row[columnNames[i].toLowerCase()] = arguments.query[columnNames[i]][arguments.row];
+				if(metadata[i].typeName == "TIMESTAMP" && isDate(arguments.query[columnNames[i]])) row[columnNames[i].toLowerCase()] = '#DateFormat(arguments.query[columnNames[i]][arguments.row], APPLICATION.spokeDateFormat)# #TimeFormat(arguments.query[columnNames[i]][arguments.row], APPLICATION.spokeTimeFormat)#';//using ISO 8601 format with timezone
 				else row[columnNames[i].toLowerCase()] = arguments.query[columnNames[i]][arguments.row];
 			}
 			return row;
@@ -610,7 +651,7 @@
 		<cfargument name="associationname" type="string" required="true" hint="the association that we are calculating the foreignkey name">
 		<cfscript>
 			var association = variables.wheels.class.associations[arguments.associationname];
-			return ((association.foreignKey EQ "")?association.modelname & "id":association.foreignKey);
+			return ((association.foreignKey == "")?association.modelname & "id":association.foreignKey);
 		</cfscript>
 	</cffunction>
 	
@@ -810,7 +851,7 @@
 						"label": "Dropdown",
 						"value": 2,
 						"type": "dropdown",
-						"list": [{"key":1, "name":"Other"},{"key":2, "name":"Test Selected"},{"key":3, "name":"Test Not-Selected"}],
+						"listing": [{"key":1, "name":"Other"},{"key":2, "name":"Test Selected"},{"key":3, "name":"Test Not-Selected"}],
 						"editable": true,
 						"required": arguments.required,
 						"placeholder": "Dropdown Placeholder",

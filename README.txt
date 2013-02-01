@@ -17,7 +17,7 @@ This file is part of SpokeDM.
 											SpokeDM Framework Readme
 \*==============================================================================================================*/
 
-SpokeDM is short for Spoke Data Management Framework - named for the imagery of spokes in wheels as this is a framework that leverages CFWheels (1.1.8) to make visual sense of data with minimal development time.
+SpokeDM is short for Spoke Data Management Framework - named for the imagery of spokes in wheels as this is a framework that leverages CFWheels (1.1.8+) to make visual sense of data with minimal development time.
 Allowing developers to work on the more complex "axles" and "Hubs" of the application without worrying about having to code maintenance screens, the maintenance screens could even form part of your application.
 Some key features of this framework are:
 	Form validation.
@@ -59,8 +59,9 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 		@param name: ColumnOrder	required: No	type: array						An array of column names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
 		@param name: HiddenFields	required: No	type: string					An list of column names that should NOT be displayed on the front end form.
 		@param name: searchColumns	required: No	type: string					a list of columns that are used in searches in addition to name and description. If not set uses name and description only.
+		@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only columns on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
 		@param name: hidePrimaryKey	required: No	type: boolean	default: true	Do not show the primary key column on the front end form - note that an enterprising user could still figure it out unless you use obfuscation
-		@param name: editorRoute	required: No	type: struct					If this is supplied then this model will be edited via the page specified instead of in SpokeDM, is passed as params to URLFor()
+		@param name: editorRoute	required: No	type: struct					If this is supplied then this model will be edited/viewed via the page specified instead of in SpokeDM, is passed as params to URLFor()
 		@param name: listRoute		required: No	type: struct					If this is supplied then this model will not list it's objects in Spoke DM but provide a link to the page specified, is passed as params to URLFor()
 	
 	SpokeDM also extends CFWheels property function with the below params, we also make use of CFWheels label param which is what we display on the front end:
@@ -70,7 +71,8 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 		@param name: spokeTip		 	required: No	type: string	Used as the tip that is displayed next to the label on the form
 	
 	We also have added a param to the belongsTo() function call that allows us to specify whether the relationship should be treated as a type/lookup and would be displayed as a dropdown on the front end:
-		@param name: spokeType	required: No	type: boolean	true will display on the front end as a dropdown not a related table
+		@param name: spokeType			required: No	type: boolean	true will display on the front end as a dropdown not a related table
+		@param name: spokeBeforeList	required: No	type: string	the name of a function that returns a string to filter this model when it is shown as a related list, for relating to a new parent.
 	
 	There is also a custom function called listFilter in the SpokeModel.cfc you can overwrite if you wish to filter what objects are shown in a list, for example; by the currently logged in user. It should return a struct that will be passed to a findAll (essentially).
 	
@@ -82,6 +84,7 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 	NOTE: When using encrypted passwords (and we highly recommend you do), either use an external page to edit the model that contains the password or Use onBeforeValidate and afterFind callbacks in the model to encrypt and unencrypt the password. (We reccomend the former)
 
 3. Update the date/time settings to what you'd like - events/OnApplicationStart.cfm (Default is UK/NZ date time format).
+4. Setup the tables that you want to include in the search in events/OnApplicationsStart.cfm.
 
 /*==============================================================================================================*\
 											Libraries and Frameworks
@@ -104,12 +107,7 @@ DBMigrate - for the demo scripts (http://cfwheels.org/plugins/listing/28)
 
 These are features I wanted/needed to include but ran out of time to do so.
 
-Next Release:
-
-- Global (Multi-Table) Search functionality.
-- Linking and Re-linking of parents and children.
-
-Unspecified Future Release:
+Unplanned Future Release:
 
 - Double Password validated field, hooked in encryption and security functions.
 - Inline AJAX/ng-view loaded custom editors.

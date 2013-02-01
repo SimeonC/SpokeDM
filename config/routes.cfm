@@ -8,10 +8,17 @@
 	addRoute(name="home", pattern="", controller="wheels", action="wheels");
 	
 	//spoke specific routes - DO NOT CHANGE (unless you are sure you know what you're doing, then go for it!)
-	addRoute(name="spokeData", pattern="/spokes/[modelkey]/[key]", controller="spokes", action="index");
 	addRoute(name="spokeDataAjax", pattern="/spokedata/[modelkey]/[key]", controller="spokes", action="dataajax");
+	addRoute(name="spokeDataBase", pattern="/spokedata", controller="spokes", action="dataajax");
+	
 	addRoute(name="spokeList", pattern="/spokes/[modelkey]", controller="spokes", action="index");
 	addRoute(name="spokeListAjax", pattern="/spokedata/[modelkey]", controller="spokes", action="dataajax");
-	addRoute(name="spoke", pattern="/spokes", controller="spokes", action="index");
-	addRoute(name="spokeAjax", pattern="/spokedata", controller="spokes", action="dataajax");
+	
+	addRoute(name="spokeLinkAjax", pattern="/spokelink/[modelkey]/[key]", controller="spokes", action="linkajax");
+	addRoute(name="spokeLinkBase", pattern="/spokelink", controller="spokes", action="linkajax");
+	
+	addRoute(name="spokeSearchBase", pattern="/spokesearch", controller="spokes", action="searchajax");
+	
+	addRoute(name="spokes", pattern="/spokes/[modelkey]/[key]", controller="spokes", action="index");
+	addRoute(name="spokes", pattern="/spokes", controller="spokes", action="index");
 </cfscript>
