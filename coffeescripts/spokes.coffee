@@ -248,7 +248,7 @@ class SpokeMain
 								for i of headers
 									headers.eq(i).css "width", toprow.eq(i).outerWidth() - 8 + "px"
 							), 5
-				axle.count = ->	Math.max $filter('filter')(@rows, $scope.search.searchstring).length, @totalcount
+				axle.count = -> Math.max $filter('filter')(@rows, $scope.search.searchstring).length, @totalcount
 				axle.search = ->
 					if not $scope.$$phase then $scope.$apply -> @rows = []
 					else @rows = []

@@ -146,6 +146,7 @@
 	</cffunction>
 	<cffunction name="$spokeBeforeSave">
 		<cfscript>
+			if(StructKeyExists(APPLICATION, "spokeSearchRefresh")) StructDelete(APPLICATION.spokeSearchRefresh, this.modelname());
 			if(!(model(this.modelname()).modelPermissions() >= 2 && this.instPermissions() >= 2)){
 				addErrorToBase("You do not have permission to Save this object.");
 				return false;
@@ -330,7 +331,7 @@
 			if(arguments.editing && this.spokeIsType()){
 				var findArgs = this.$spokeFindAllGenerator(argumentCollection=arguments.passThrough);
 				if(Len(this.primaryKey()) && ListFindNoCase(this.columnNames(), this.primaryKey())) findArgs.select = "#this.primaryKey()# as 'key'," & ListDeleteAt(this.columnNames(), ListFindNoCase(this.columnNames(), this.primaryKey()));
-				return $spokeQueryToStructs(this.findAll(argumentCollection=findArgs), this.modelname());
+				return $spokeQueryToStructs(this.findAll(argumentCollection=findArgs));
 			}
 			//note that $spokeFindAllGenerator() has the id in the select statement so we should be all good
 			if(!StructKeyExists(APPLICATION, "spokeTypesCache")) APPLICATION.spokeTypesCache = {};
@@ -339,7 +340,7 @@
 				//if cached list exists, use it!
 				list = APPLICATION.spokeTypesCache[this.modelname()];
 			else{//no cached list, so load it and then cache it!
-				list = $spokeQueryToStructs(this.findAll(argumentCollection=this.$spokeFindAllGenerator(argumentCollection=arguments.passThrough)), this.modelname());
+				list = $spokeQueryToStructs(this.findAll(argumentCollection=this.$spokeFindAllGenerator(argumentCollection=arguments.passThrough)));
 				//cache the list if type
 				if(this.spokeIsType()) APPLICATION.spokeTypesCache[this.modelname()] = list;
 			}
@@ -459,9 +460,9 @@
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //the $associationMethod from onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
 							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(
-							missingMethodName = variables.wheels.class.associations[key].shortcut,
-							missingMethodArguments = shortcutModel.$spokeFindAllGenerator()
-						), shortcutModel.modelname());
+								missingMethodName = variables.wheels.class.associations[key].shortcut,
+								missingMethodArguments = shortcutModel.$spokeFindAllGenerator()
+							));
 					}else{
 						//setup
 						var returnStruct = {"modelkey": variables.wheels.class.associations[key].modelname};
@@ -481,7 +482,7 @@
 							returnStruct["listing"] = childModel.externalListURL();
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //the $associationMethod from onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
-							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(missingMethodName = key, missingMethodArguments = childModel.$spokeFindAllGenerator()), childModel.modelname());
+							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(missingMethodName = key, missingMethodArguments = childModel.$spokeFindAllGenerator()));
 					}
 					
 					if(StructKeyExists(arguments, "childrenOnly")) ArrayAppend(result, returnStruct);
@@ -497,7 +498,8 @@
 		<cfargument name="searchValue" required="true" type="string" hint="the string to search within the fields">
 		<cfargument name="maxRows" required="false" type="numeric" default=10 hint="Maximum rows to return, default is based on sensible height of a box and scrollability and just a random number I liked at the time">
 		<cfscript>
-			if(!Len(arguments.searchValue)) return [];//return nothing if no search value
+			if(!Len(arguments.searchValue)) return {"totalcount": 0, "query": []};//return nothing if no search value
+			if(!StructKeyExists(SESSION, "spokecache")) SESSION.spokecache = {};
 			var whereClause = "";
 			if(StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)){
 				var columnArray = ListToArray(variables.wheels.class.spokesettings.searchColumns);
@@ -507,21 +509,41 @@
 					}
 				}
 			}
-			//add filtering on the dynamic name and description columns
-			if(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn)) whereClause &= " OR (#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.NameColumn]# LIKE '%#arguments.searchValue#%'";
-			else if(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")) whereClause &= " OR #variables.wheels.class.spokesettings.NameColumn# LIKE '%#arguments.searchValue#%'";
-			else if(ListContainsNoCase(this.propertyNames(), "name")) whereClause &= " OR name LIKE '%#arguments.searchValue#%'";
-			if(StructKeyExists(variables.wheels.class.spokesettings, "DescColumn"))
-				if(StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescColumn)) whereClause &= " OR #variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescColumn]# LIKE '%#arguments.searchValue#%'";
-				else whereClause &= " OR #variables.wheels.class.spokesettings.DescColumn# LIKE '%#arguments.searchValue#%'";
-			if(!Len(whereClause)) return [];//return nothing if no valid search columns
-			whereClause = Right(whereClause, Len(whereClause) - 4);//remove the first OR statement
-			var findAllGen = this.$spokeFindAllGenerator(where=whereClause, maxRows=arguments.maxRows, orderBy=(StructKeyExists(variables.wheels.class.spokesettings, "searchOrderBy"))?variables.wheels.class.spokesettings.searchOrderBy:"");
-			return {
-				"totalcount": this.count(where=findAllGen.where),
-				"query": $spokeQueryToStructs(this.findAll(argumentCollection=findAllGen), '', '', false)
-			};
+			var modelname = this.modelname();
+			if(!StructKeyExists(SESSION.spokecache, modelname)
+				|| !StructKeyExists(APPLICATION, "spokeSearchRefresh")//first query call
+				|| !StructKeyExists(APPLICATION.spokeSearchRefresh, modelname)//no last refresh time - first time called or model was saved so refreshed
+				|| DateDiff("n", APPLICATION.spokeSearchRefresh[modelname], NOW()) >= MAX(5, APPLICATION.spokeSearchTimeout)){//time last refreshed was too long ago
+				//cache the user specific query, not in application due to userFilter method
+				if(!StructKeyExists(APPLICATION, "spokeSearchRefresh")) APPLICATION.spokeSearchRefresh = {modelname : NOW()};
+				else APPLICATION.spokeSearchRefresh[modelname] = NOW();
+				SESSION.spokecache[modelname] = this.findAll(argumentCollection=this.$spokeFindAllGenerator(maxRows=arguments.maxRows, orderBy=(StructKeyExists(variables.wheels.class.spokesettings, "searchOrderBy"))?variables.wheels.class.spokesettings.searchOrderBy:""));
+			}
+			var cachedquery = SESSION.spokecache[modelname];
 		</cfscript>
+		<cfquery dbtype="query" name="result">
+			SELECT * FROM cachedquery
+			WHERE false
+				<cfif 
+					(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn))
+					OR StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")
+					OR ListContainsNoCase(this.propertyNames(), "name")>
+					OR name LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
+				</cfif>
+			<cfif StructKeyExists(variables.wheels.class.spokesettings, "DescColumn")>
+				OR description LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
+			</cfif>
+			<cfif StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)>
+				<cfset var searchColumns = ListToArray(variables.wheels.class.spokesettings.searchColumns)>
+				<cfloop index="i" from="1" to="#ArrayLen(searchColumns)#" step="1">
+					OR #searchColumns[i]# LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
+				</cfloop>
+			</cfif>
+		</cfquery>
+		<cfreturn {
+			"totalcount": result.recordcount,
+			"query": $spokeQueryToStructs(result, arguments.maxRows)
+		}>
 	</cffunction>
 	
 	<cffunction name="$spokeProperty" access="public" returnType="struct" hint="Calculates all static values about a passed in property">
@@ -612,11 +634,12 @@
 	
 	<cffunction name="$spokeQueryToStructs" access="private" returnType="array" output="false" hint="prepares a query to be sent spoke style! Largely includes converting it to an array of structs so it plays nicely with angular">
 		<cfargument name="query" required="true" type="query" hint="the query to convert">
+		<cfargument name="limit" required="false" type="numeric" hint="an optional limit for the results">
 		<cfscript>
 			if(arguments.query.recordcount == 0) return [];
 			//used to use $serializeQueryToStructs, but we do NOT want to initialise objects
 			var result = [];
-			for (var i=1; i <= arguments.query.recordCount; i++) ArrayAppend(result, $spokeQueryRowToStruct(arguments.query, i));
+			for (var i=1; i <= arguments.query.recordCount && (StructKeyExists(arguments, "limit") && arguments.limit > 0 && i <= arguments.limit); i++) ArrayAppend(result, $spokeQueryRowToStruct(arguments.query, i));
 			return result;
 		</cfscript>
 	</cffunction>
