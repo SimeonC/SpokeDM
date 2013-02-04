@@ -521,7 +521,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				//cache the user specific query, not in application due to userFilter method
 				if(!StructKeyExists(APPLICATION, "spokeSearchRefresh")) APPLICATION.spokeSearchRefresh = {modelname : NOW()};
 				else APPLICATION.spokeSearchRefresh[modelname] = NOW();
-				SESSION.spokecache[modelname] = this.findAll(argumentCollection=this.$spokeFindAllGenerator(maxRows=arguments.maxRows, orderBy=(StructKeyExists(variables.wheels.class.spokesettings, "searchOrderBy"))?variables.wheels.class.spokesettings.searchOrderBy:""));
+				SESSION.spokecache[modelname] = this.findAll(argumentCollection=this.$spokeFindAllGenerator(orderBy=(StructKeyExists(variables.wheels.class.spokesettings, "searchOrderBy"))?variables.wheels.class.spokesettings.searchOrderBy:""));
 			}
 			var cachedquery = SESSION.spokecache[modelname];
 		</cfscript>
