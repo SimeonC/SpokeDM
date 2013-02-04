@@ -171,22 +171,25 @@ If not, see <http://www.gnu.org/licenses/>.
 			//create the date objects to save
 			var changedProps = ListToArray(this.changedProperties());
 			for(var key in changedProps)
-				if(StructKeyExists(this, key) && Len(this[key]) && StructKeyExists(variables.wheels.class.properties, key) //check if value exists - if not we don't need to process it
-					&& (variables.wheels.class.properties[key].validationType == "datetime"
-					|| variables.wheels.class.properties[key].type == 'CF_SQL_DATE'
-					|| variables.wheels.class.properties[key].type == 'CF_SQL_TIME'
-					|| (
-						StructKeyExists(variables.wheels.class.mapping, key)
-						&& StructKeyExists(variables.wheels.class.mapping[key], "spoketype")
-						&& (variables.wheels.class.mapping[key].spoketype == "datetime"
-							|| variables.wheels.class.mapping[key].spoketype == "time"
-							|| variables.wheels.class.mapping[key].spoketype == "date"
+				if(StructKeyExists(this, key)){
+					this[key] = Trim(this[key]);
+					if(Len(this[key]) && StructKeyExists(variables.wheels.class.properties, key) //check if value exists - if not we don't need to process it
+						&& (variables.wheels.class.properties[key].validationType == "datetime"
+						|| variables.wheels.class.properties[key].type == 'CF_SQL_DATE'
+						|| variables.wheels.class.properties[key].type == 'CF_SQL_TIME'
+						|| (
+							StructKeyExists(variables.wheels.class.mapping, key)
+							&& StructKeyExists(variables.wheels.class.mapping[key], "spoketype")
+							&& (variables.wheels.class.mapping[key].spoketype == "datetime"
+								|| variables.wheels.class.mapping[key].spoketype == "time"
+								|| variables.wheels.class.mapping[key].spoketype == "date"
+							)
 						)
-					)
-				)){
-					var formatter = CreateObject("java", "java.text.SimpleDateFormat");
-					formatter.init(APPLICATION.spokeDateFormat & " " & REReplaceNoCase(APPLICATION.spokeTimeFormat, 'tt', 'a', 'ALL'));
-					this[key] = formatter.parse(this[key]);
+					)){
+						var formatter = CreateObject("java", "java.text.SimpleDateFormat");
+						formatter.init(APPLICATION.spokeDateFormat & " " & REReplaceNoCase(APPLICATION.spokeTimeFormat, 'tt', 'a', 'ALL'));
+						this[key] = formatter.parse(this[key]);
+					}
 				}
 		</cfscript>
 	</cffunction>
@@ -230,9 +233,10 @@ If not, see <http://www.gnu.org/licenses/>.
 				"properties": newInst.spokeProperties(),
 				"associations": {"parents": []},
 				"permissions": 4,//allways able to delete a new object - make sure this is reloaded when saved
-				"_invis": [{"name": newInst.$foreignKey(this.modelName()), "value": newInst.$spokeValue(newInst.$foreignKey(this.modelName()))}],
 				"errors": []
 			};
+			if(StructKeyExists(arguments, "newmodelkey"))
+				result["_invis"] = [{"name": newInst.$foreignKey(this.modelName()), "value": newInst.$spokeValue(newInst.$foreignKey(this.modelName()))}]
 			//build the parents up so we can search and select which parents to relate it to
 			return result; 
 		</cfscript>
@@ -411,9 +415,9 @@ If not, see <http://www.gnu.org/licenses/>.
 			for(var i = 1; i <= ArrayLen(properties); i++){
 				if(StructKeyExists(variables.wheels.class.properties, properties[i]) && variables.wheels.class.properties[properties[i]].validationType == "binary") continue;//ignore binary for now
 				results[properties[i]] = $spokeProperty(properties[i]);
-				results[properties[i]]["value"] = this.$spokeValue(properties[i]);
+				results[properties[i]]["value"] = Trim(this.$spokeValue(properties[i]));
 				if(results[properties[i]].type == "boolean") results[properties[i]].value = ((results[properties[i]].value == "")?false:((results[properties[i]].value)?true:false));//force bits, yes/no etc to be true false values to work with angularjs checkbox settings
-				if(results[properties[i]].type == "datetime" || results[properties[i]].type == "date" || results[properties[i]].type == "time") results[properties[i]]["value"] = '#DateFormat(results[properties[i]]["value"], APPLICATION.spokeDateFormat)# #TimeFormat(results[properties[i]]["value"], APPLICATION.spokeTimeFormat)#';
+				if(results[properties[i]].type == "datetime" || results[properties[i]].type == "date" || results[properties[i]].type == "time") results[properties[i]]["value"] = Trim('#DateFormat(results[properties[i]]["value"], APPLICATION.spokeDateFormat)# #TimeFormat(results[properties[i]]["value"], APPLICATION.spokeTimeFormat)#');
 			}
 			var returnArray = [];
 			for(var i = 1; i <= ArrayLen(workingColumnOrder); i++) if(StructKeyExists(results, workingColumnOrder[i])) ArrayAppend(returnArray, results[workingColumnOrder[i]]);
@@ -634,12 +638,12 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="$spokeQueryToStructs" access="private" returnType="array" output="false" hint="prepares a query to be sent spoke style! Largely includes converting it to an array of structs so it plays nicely with angular">
 		<cfargument name="query" required="true" type="query" hint="the query to convert">
-		<cfargument name="limit" required="false" type="numeric" hint="an optional limit for the results">
+		<cfargument name="limit" required="false" default="0" type="numeric" hint="an optional limit for the results">
 		<cfscript>
 			if(arguments.query.recordcount == 0) return [];
 			//used to use $serializeQueryToStructs, but we do NOT want to initialise objects
 			var result = [];
-			for (var i=1; i <= arguments.query.recordCount && (StructKeyExists(arguments, "limit") && arguments.limit > 0 && i <= arguments.limit); i++) ArrayAppend(result, $spokeQueryRowToStruct(arguments.query, i));
+			for (var i=1; i <= arguments.query.recordCount && (!StructKeyExists(arguments, "limit") || arguments.limit <= 0 || i <= arguments.limit); i++) ArrayAppend(result, $spokeQueryRowToStruct(arguments.query, i));
 			return result;
 		</cfscript>
 	</cffunction>

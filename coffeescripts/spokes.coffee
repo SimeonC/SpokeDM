@@ -62,11 +62,14 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 	}
 	DataSpoke::get = (cb) ->
 		#caching logic
-		if DataCache.find @modelkey, @key
+		if not @newmodelkey? and DataCache.find @modelkey, @key
 			angular.extend @, DataCache.get(@modelkey, @key)
 			return
-		if @newmodelkey? then @newkey = @newmodelkey
-		return DataSpoke.get @, (json) =>
+		params =
+			modelkey: @modelkey
+			key: @key
+		if @newmodelkey? then params['newkey'] = @newmodelkey
+		return DataSpoke.get params, (json) =>
 			if json.errors? and json.errors.length isnt 0 then return $rootScope.$broadcast 'spokeLoadError', json.errors
 			if json.loginerror?
 				$rootScope.broadcast "SpokeUserLoggedOut", json
@@ -198,7 +201,7 @@ class SpokeMain
 				'$': ''
 			results: []
 			current: {}
-			dosearch: false
+			typing: false
 			lastsearched: ''
 			title: -> return if @searchstring.$ is '' then "Options" else "Results"
 			totalcount: ->
@@ -291,16 +294,17 @@ class SpokeMain
 			if !result then $("div.navbar div.navbar-inner div.scroller ul.nav").css "left", "0px"
 			return result
 		
-		$scope.$watch "search.dosearch", -> if $scope.search.searchstring.$ isnt '' and $scope.search.dosearch then axle.search() for axle in $scope.search.results
 		#wait to ensure typing is stopped
-		$scope.$watch "search.searchstring.$", -> if $scope.search.searchstring.$ isnt '' then $scope.search.dosearch = false else
+		$scope.$watch "search.searchstring.$", -> if $scope.search.searchstring.$ isnt '' then $scope.search.typing = true else
 			$("div.navbar div.navbar-inner div.scroller ul.nav").css "left", "0px"
 			axle.reset() for axle in $scope.search.results
 		$scope.incTimer = () ->
-			$scope.search.dosearch = true
-			if not $scope.$$phase then $scope.$apply()
-			setTimeout $scope.incTimer, 1500
-			#$timeout $scope.incTimer, 1500 temporary fix until I find the memory leak here...
+			if $scope.search.searchstring.$ isnt '' and not $scope.search.typing
+				axle.search() for axle in $scope.search.results
+				if not $scope.$$phase then $scope.$apply()
+			else if $scope.search.typing then $scope.search.typing = false
+			setTimeout $scope.incTimer, 750
+			#$timeout $scope.incTimer, 750# temporary fix until I find the memory leak here...
 		$scope.incTimer()
 		
 		$scope.toggleAxel = (axle) ->
@@ -331,15 +335,17 @@ class SpokeMain
 			$scope.save()
 		$scope.save = () ->
 			$scope.clearAlerts()
+			origSpokeKey = $scope.spoke.key
 			$scope.spoke.save (json) ->
 				delete $scope.dirtywarnings
+				console.log origSpokeKey
 				if json.dirtywarnings
 					$scope.dirtywarnings = json.dirtywarnings
 					$scope.appendAlert 'warning', 'Warning!', 'While saving we noticed another user has already saved changes to this object; Please check the changes and click "Force Save" if you wish to overwrite them'
 				else if json.errors? and json.errors.length isnt 0
 					for error in json.errors
 						$scope.appendAlert 'error', 'Error!', error.message
-				else if $scope.spoke.key is 'new'
+				else if origSpokeKey is 'new'
 					$scope.appendAlert 'success', 'Saved!', 'The new ' + $scope.spoke.modelkey + ' was created successfully'
 					$location.path spokesBaseViewUrl + '/' + $scope.spoke.modelkey + '/' + json.key
 					$location.replace()

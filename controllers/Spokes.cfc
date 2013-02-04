@@ -99,7 +99,8 @@ If not, see <http://www.gnu.org/licenses/>.
 			}else if(request.cgi.request_method == "GET"){
 				if(modelPerms <= 0) return renderWith({"errors": [{"message": "Maybe you wanted the other moon? (You can't view this)"}]});
 				if(!StructKeyExists(params, "key") || params.key == 'list') return renderWith(model.spokeListLoad());
-				item = model.findByKey(params.key);
+				if(params.key == 'new') return renderWith(model.spokeNew());
+				else item = model.findByKey(params.key);
 				var perms = 0;
 				if(!isStruct(item) || (perms = Min(modelPerms, item.instPermissions())) <= 0) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
 				if(StructKeyExists(params, "delete") && params.delete){

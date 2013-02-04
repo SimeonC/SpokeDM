@@ -99,15 +99,20 @@ If not, see <http://www.gnu.org/licenses/>.
       }
     });
     DataSpoke.prototype.get = function(cb) {
-      var _this = this;
-      if (DataCache.find(this.modelkey, this.key)) {
+      var params,
+        _this = this;
+      if (!(this.newmodelkey != null) && DataCache.find(this.modelkey, this.key)) {
         angular.extend(this, DataCache.get(this.modelkey, this.key));
         return;
       }
+      params = {
+        modelkey: this.modelkey,
+        key: this.key
+      };
       if (this.newmodelkey != null) {
-        this.newkey = this.newmodelkey;
+        params['newkey'] = this.newmodelkey;
       }
-      return DataSpoke.get(this, function(json) {
+      return DataSpoke.get(params, function(json) {
         var i, item, j, option, _i, _j, _len, _len1, _ref, _ref1;
         if ((json.errors != null) && json.errors.length !== 0) {
           return $rootScope.$broadcast('spokeLoadError', json.errors);
@@ -344,7 +349,7 @@ If not, see <http://www.gnu.org/licenses/>.
         },
         results: [],
         current: {},
-        dosearch: false,
+        typing: false,
         lastsearched: '',
         title: function() {
           if (this.searchstring.$ === '') {
@@ -536,22 +541,10 @@ If not, see <http://www.gnu.org/licenses/>.
         }
         return result;
       };
-      $scope.$watch("search.dosearch", function() {
-        var axle, _i, _len, _ref, _results;
-        if ($scope.search.searchstring.$ !== '' && $scope.search.dosearch) {
-          _ref = $scope.search.results;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            axle = _ref[_i];
-            _results.push(axle.search());
-          }
-          return _results;
-        }
-      });
       $scope.$watch("search.searchstring.$", function() {
         var axle, _i, _len, _ref, _results;
         if ($scope.search.searchstring.$ !== '') {
-          return $scope.search.dosearch = false;
+          return $scope.search.typing = true;
         } else {
           $("div.navbar div.navbar-inner div.scroller ul.nav").css("left", "0px");
           _ref = $scope.search.results;
@@ -564,11 +557,20 @@ If not, see <http://www.gnu.org/licenses/>.
         }
       });
       $scope.incTimer = function() {
-        $scope.search.dosearch = true;
-        if (!$scope.$$phase) {
-          $scope.$apply();
+        var axle, _i, _len, _ref;
+        if ($scope.search.searchstring.$ !== '' && !$scope.search.typing) {
+          _ref = $scope.search.results;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            axle = _ref[_i];
+            axle.search();
+          }
+          if (!$scope.$$phase) {
+            $scope.$apply();
+          }
+        } else if ($scope.search.typing) {
+          $scope.search.typing = false;
         }
-        return setTimeout($scope.incTimer, 1500);
+        return setTimeout($scope.incTimer, 750);
       };
       $scope.incTimer();
       $scope.toggleAxel = function(axle) {
@@ -616,10 +618,13 @@ If not, see <http://www.gnu.org/licenses/>.
         return $scope.save();
       };
       $scope.save = function() {
+        var origSpokeKey;
         $scope.clearAlerts();
+        origSpokeKey = $scope.spoke.key;
         $scope.spoke.save(function(json) {
           var error, _i, _len, _ref, _results;
           delete $scope.dirtywarnings;
+          console.log(origSpokeKey);
           if (json.dirtywarnings) {
             $scope.dirtywarnings = json.dirtywarnings;
             return $scope.appendAlert('warning', 'Warning!', 'While saving we noticed another user has already saved changes to this object; Please check the changes and click "Force Save" if you wish to overwrite them');
@@ -631,7 +636,7 @@ If not, see <http://www.gnu.org/licenses/>.
               _results.push($scope.appendAlert('error', 'Error!', error.message));
             }
             return _results;
-          } else if ($scope.spoke.key === 'new') {
+          } else if (origSpokeKey === 'new') {
             $scope.appendAlert('success', 'Saved!', 'The new ' + $scope.spoke.modelkey + ' was created successfully');
             $location.path(spokesBaseViewUrl + '/' + $scope.spoke.modelkey + '/' + json.key);
             $location.replace();
