@@ -298,8 +298,9 @@ class SpokeMain
 		$scope.$watch "search.searchstring.$", -> if $scope.search.searchstring.$ isnt '' then $scope.search.typing = true else
 			$("div.navbar div.navbar-inner div.scroller ul.nav").css "left", "0px"
 			axle.reset() for axle in $scope.search.results
+			$scope.search.lastsearched = ''
 		$scope.incTimer = () ->
-			if $scope.search.searchstring.$ isnt '' and not $scope.search.typing
+			if $scope.search.searchstring.$ isnt '' and $scope.search.lastsearched isnt $scope.search.searchstring.$ and not $scope.search.typing
 				axle.search() for axle in $scope.search.results
 				if not $scope.$$phase then $scope.$apply()
 			else if $scope.search.typing then $scope.search.typing = false

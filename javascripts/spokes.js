@@ -542,23 +542,22 @@ If not, see <http://www.gnu.org/licenses/>.
         return result;
       };
       $scope.$watch("search.searchstring.$", function() {
-        var axle, _i, _len, _ref, _results;
+        var axle, _i, _len, _ref;
         if ($scope.search.searchstring.$ !== '') {
           return $scope.search.typing = true;
         } else {
           $("div.navbar div.navbar-inner div.scroller ul.nav").css("left", "0px");
           _ref = $scope.search.results;
-          _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             axle = _ref[_i];
-            _results.push(axle.reset());
+            axle.reset();
           }
-          return _results;
+          return $scope.search.lastsearched = '';
         }
       });
       $scope.incTimer = function() {
         var axle, _i, _len, _ref;
-        if ($scope.search.searchstring.$ !== '' && !$scope.search.typing) {
+        if ($scope.search.searchstring.$ !== '' && $scope.search.lastsearched !== $scope.search.searchstring.$ && !$scope.search.typing) {
           _ref = $scope.search.results;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             axle = _ref[_i];

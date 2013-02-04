@@ -528,13 +528,13 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfquery dbtype="query" name="result">
 			SELECT * FROM cachedquery
 			WHERE false
-				<cfif 
-					(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn))
-					OR StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")
-					OR ListContainsNoCase(this.propertyNames(), "name")>
-					OR name LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
-				</cfif>
-			<cfif StructKeyExists(variables.wheels.class.spokesettings, "DescColumn")>
+			<cfif 
+				(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn))
+				OR StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")
+				OR ListContainsNoCase(this.propertyNames(), "name")>
+				OR name LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
+			</cfif>
+			<cfif StructKeyExists(variables.wheels.class.spokesettings, "DescColumn") || Len(StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes")) || Len(ArrayFindOneOf(this.columns(), "description,desc,note,notes"))>
 				OR description LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
 			</cfif>
 			<cfif StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)>
