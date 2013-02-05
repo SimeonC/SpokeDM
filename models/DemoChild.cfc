@@ -18,7 +18,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="init">
 		<cfscript>
-			spokeInit(name="Demo Child", nameColumn="displayname", searchColumns="packagetype");
+			spokeInit(name="Demo Child", nameProperty="displayname", searchProperties="packagetype");
 			belongsTo("demoparent");
 			
 			property(name="packagetype", spokeOptions=["Good","Tiny","Odd"]);

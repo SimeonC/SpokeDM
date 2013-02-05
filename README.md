@@ -139,7 +139,7 @@ SpokeDM also extends CFWheels property function with the below params, we also m
 		name: spokeOptions
 		required: No
 		type: array
-		hint: an array of strings that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
+		hint: an array of strings/{key: string, name: string} that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
 	@param
 		name: spokePlaceholder
 		required: No

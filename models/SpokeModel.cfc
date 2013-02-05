@@ -30,7 +30,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				@param name: label				required: No	type: string	defines the label to be used on the front end
 				@param name: spokeType:			required: No	type: string	A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown
 									NOTE that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.
-				@param name: spokeOptions		required: No	type: string	an array of strings that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
+				@param name: spokeOptions		required: No	type: string	an array of strings/{key, name} that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
 				@param name: spokePlaceholder	required: No	type: string	Used as the default/unselected value in dropdowns or as the placeholder value in all other inputs as suitable (some don't support it, like display or checkboxes)
 				@param name: spokeDesc			required: No	type: string	Used as the description that is displayed next to the label on the form
 				@param name: spokeTip			required: No	type: string	displayed as a tooltip on the input
@@ -132,22 +132,22 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="$spokeBeforeCreate">
 		<cfscript>
-			if(model(this.modelname()).modelPermissions() >= 3 && this.instPermissions() >= 3) return true;
+			if(this.modelPermissions() >= 3 && this.instPermissions() >= 3) return true;
 			addErrorToBase("You do not have permission to Create a new object.");
 			return false;
 		</cfscript>
 	</cffunction>
 	<cffunction name="$spokeBeforeUpdate">
 		<cfscript>
-			if(model(this.modelname()).modelPermissions() >= 2 && this.instPermissions() >= 2) return true;
+			if(this.modelPermissions() >= 2 && this.instPermissions() >= 2) return true;
 			addErrorToBase("You do not have permission to Update this object.");
 			return false;
 		</cfscript>
 	</cffunction>
 	<cffunction name="$spokeBeforeSave">
 		<cfscript>
-			if(StructKeyExists(APPLICATION, "spokeSearchRefresh")) StructDelete(APPLICATION.spokeSearchRefresh, this.modelname());
-			if(!(model(this.modelname()).modelPermissions() >= 2 && this.instPermissions() >= 2)){
+			if(StructKeyExists(APPLICATION, "spokeSearchRefresh")) StructDelete(APPLICATION.spokeSearchRefresh, this.spokemodelname());
+			if(!(this.modelPermissions() >= 2 && this.instPermissions() >= 2)){
 				addErrorToBase("You do not have permission to Save this object.");
 				return false;
 			}
@@ -156,7 +156,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	</cffunction>
 	<cffunction name="$spokeBeforeDelete">
 		<cfscript>
-			if(model(this.modelname()).modelPermissions() >= 4 && this.instPermissions() >= 4) return true;
+			if(this.modelPermissions() >= 4 && this.instPermissions() >= 4) return true;
 			addErrorToBase("You do not have permission to Delete this object.");
 			return false;
 		</cfscript>
@@ -200,7 +200,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="spokeDataLoad" access="public" returnType="struct" output="false" hint="returns a struct of DATA to be set for this model, includes types but doesn't include associated parents and children">
 		<cfscript>
-			var modelPerms = model(this.modelname()).modelPermissions();
+			var modelPerms = this.modelPermissions();
 			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
 			var instPerms = this.instPermissions();
 			if(instPerms == 0)
@@ -236,7 +236,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				"errors": []
 			};
 			if(StructKeyExists(arguments, "newmodelkey"))
-				result["_invis"] = [{"name": newInst.$foreignKey(this.modelName()), "value": newInst.$spokeValue(newInst.$foreignKey(this.modelName()))}]
+				result["_invis"] = [{"name": newInst.$foreignKey(this.spokemodelname()), "value": newInst.$spokeValue(newInst.$foreignKey(this.spokemodelname()))}]
 			//build the parents up so we can search and select which parents to relate it to
 			return result; 
 		</cfscript>
@@ -244,7 +244,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="spokeTypeload" access="public" returnType="struct" output="false" hint="returns a struct of DATA such that this model may be edited as a list of types">
 		<cfscript>
-			var modelPerms = model(this.modelname()).modelPermissions();
+			var modelPerms = this.modelPermissions();
 			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
 			var workingPropertyOrder = this._spokeProperties();
 			var properties = [];
@@ -261,7 +261,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="spokeListload" access="public" returnType="struct" output="false" hint="returns an array listing all instances viewable">
 		<cfscript>
-			var modelPerms = model(this.modelname()).modelPermissions();
+			var modelPerms = this.modelPermissions();
 			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
 			return {
 				"name": this.spokeDisplayName(),
@@ -283,7 +283,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			var foreignKey = (StructKeyExists(assoc, "foreignKey"))
 				?assoc.foreignKey
 				:(Singularize(arguments.parentName)&"id");
-			if(model(this.modelname()).modelPermissions() <= 1) return {"errors": [{"message": "You do not have permission to change/view this."}]};
+			if(this.modelPermissions() <= 1) return {"errors": [{"message": "You do not have permission to change/view this."}]};
 			return {
 				"name": parentModel.spokeDisplayName(),
 				"listing"://use listing so we don't conflict with the list function in the javascript
@@ -302,7 +302,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfscript>
 			var result = "";
 			if(StructKeyExists(variables.wheels.class.spokesettings, "name") && Len(variables.wheels.class.spokesettings.name)) result = variables.wheels.class.spokesettings.name;
-			else result = this.modelName();
+			else result = this.spokemodelname();
 			return Humanize($spokePluralize(result, arguments.plural));
 		</cfscript>
 	</cffunction>
@@ -323,7 +323,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="$spokeValidityCheck" access="private" returnType="void" output="false" hint="enforces the settings that spoke models must have, for now we just check that there is one singular primary key">
 		<cfscript>
-			if(ListLen(this.primaryKeys()) != 1) throw(type="spokeModelException", message="There was no suitable single primary key on ""#this.modelName()#"", value: #this.primaryKeys()#");
+			if(ListLen(this.primaryKeys()) != 1) throw(type="spokeModelException", message="There was no suitable single primary key on ""#this.spokemodelname()#"", value: #this.primaryKeys()#");
 		</cfscript>
 	</cffunction>
 	
@@ -340,13 +340,13 @@ If not, see <http://www.gnu.org/licenses/>.
 			//note that $spokeFindAllGenerator() has the id in the select statement so we should be all good
 			if(!StructKeyExists(APPLICATION, "spokeTypesCache")) APPLICATION.spokeTypesCache = {};
 			var list = [];
-			if(StructKeyExists(APPLICATION.spokeTypesCache, this.modelname()) && this.spokeIsType())
+			if(StructKeyExists(APPLICATION.spokeTypesCache, this.spokemodelname()) && this.spokeIsType())
 				//if cached list exists, use it!
-				list = APPLICATION.spokeTypesCache[this.modelname()];
+				list = APPLICATION.spokeTypesCache[this.spokemodelname()];
 			else{//no cached list, so load it and then cache it!
 				list = $spokeQueryToStructs(this.findAll(argumentCollection=this.$spokeFindAllGenerator(argumentCollection=arguments.passThrough)));
 				//cache the list if type
-				if(this.spokeIsType()) APPLICATION.spokeTypesCache[this.modelname()] = list;
+				if(this.spokeIsType()) APPLICATION.spokeTypesCache[this.spokemodelname()] = list;
 			}
 			return list;
 		</cfscript>
@@ -394,7 +394,7 @@ If not, see <http://www.gnu.org/licenses/>.
 					var typemodel = model(variables.wheels.class.associations[types[i]].modelName);
 					if(this.instPermissions() >= 2)
 						results[this.$foreignKey(types[i])] = {
-							"name": typemodel.modelname(),
+							"name": typemodel.spokemodelname(),
 							"label": typemodel.spokeDisplayName(false),
 							"value": this.$spokeValue(this.$foreignKey(types[i])),
 							"listing": typemodel.spokeList(),
@@ -404,7 +404,7 @@ If not, see <http://www.gnu.org/licenses/>.
 						};
 					else
 						results[this.$foreignKey(types[i])] = {
-							"name": typemodel.modelname(),
+							"name": typemodel.spokemodelname(),
 							"label": typemodel.spokeDisplayName(false),
 							"value": this.$associationMethod(missingMethodName = types[i], missingMethodArguments = typemodel.$spokeFindAllGenerator()).name,
 							"type": "display"
@@ -458,9 +458,9 @@ If not, see <http://www.gnu.org/licenses/>.
 							? Capitalize($spokePluralize(variables.wheels.class.associations[key].spokename))
 							: shortcutModel.spokeDisplayName();
 						
-						if(Len(shortcutModel.externalEditorURL())) returnStruct["editor"] = shortcutModel.externalEditorURL();
-						if(Len(shortcutModel.externalListURL())){
-							returnStruct["listing"] = shortcutModel.externalListURL();
+						if(Len(shortcutModel.spokeExternalEditorURL())) returnStruct["editor"] = shortcutModel.spokeExternalEditorURL();
+						if(Len(shortcutModel.spokeExternalListURL())){
+							returnStruct["listing"] = shortcutModel.spokeExternalListURL();
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //the $associationMethod from onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
 							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(
@@ -481,9 +481,9 @@ If not, see <http://www.gnu.org/licenses/>.
 								:childModel.spokeDisplayName(pluralizeName);
 						//need some kind of optimisation? different display for REALLY BIG lists - only if someone complains.
 						//returnStruct["count"] = model.$associationMethod(missingMethodName = key & "Count", missingMethodArguments = {}); for now angular can handle this part
-						if(Len(childModel.externalEditorURL())) returnStruct["editor"] = childModel.externalEditorURL();
-						if(Len(childModel.externalListURL())){
-							returnStruct["listing"] = childModel.externalListURL();
+						if(Len(childModel.spokeExternalEditorURL())) returnStruct["editor"] = childModel.spokeExternalEditorURL();
+						if(Len(childModel.spokeExternalListURL())){
+							returnStruct["listing"] = childModel.spokeExternalListURL();
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //the $associationMethod from onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
 							returnStruct["data"] = $spokeQueryToStructs(this.$associationMethod(missingMethodName = key, missingMethodArguments = childModel.$spokeFindAllGenerator()));
@@ -504,7 +504,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfscript>
 			if(!Len(arguments.searchValue)) return {"totalcount": 0, "query": []};//return nothing if no search value
 			if(!StructKeyExists(SESSION, "spokecache")) SESSION.spokecache = {};
-			var modelname = this.modelname();
+			var modelname = this.spokemodelname();
 			if(!StructKeyExists(SESSION.spokecache, modelname)
 				|| !StructKeyExists(APPLICATION, "spokeSearchRefresh")//first query call
 				|| !StructKeyExists(APPLICATION.spokeSearchRefresh, modelname)//no last refresh time - first time called or model was saved so refreshed
@@ -607,7 +607,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			else if(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.NameProperty#) as name";
 			else if(StructKeyExists(variables.wheels.class.calculatedProperties, "name")) arguments.select &= ",(#variables.wheels.class.calculatedProperties.name.sql#) as name";
 			else if(ArrayFindNoCase(this.columns(), "name")) arguments.select &= ",#this.tableName()#.name";
-			else throw(type="spokeModelException", message="There was no suitable Name field on the model ""#this.modelName()#"", try setting it manually in spokeInit(). Spoke Settings: #StructKeyList(variables.wheels.class.spokesettings)#");
+			else throw(type="spokeModelException", message="There was no suitable Name field on the model ""#this.spokeModelName()#"", try setting it manually in spokeInit(). Spoke Settings: #StructKeyList(variables.wheels.class.spokesettings)#");
 			
 			//calculate description property, if not, set to blank
 			if(StructKeyExists(variables.wheels.class.spokesettings, "DescProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescProperty].sql#) as description";
@@ -673,7 +673,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="modelName" access="public" returnType="string" output="false" hint="convenience function that returns the wheels model name">
+	<cffunction name="spokeModelName" access="public" returnType="string" output="false" hint="convenience function that returns the wheels model name">
 		<cfscript>
 			return variables.wheels.class.modelname;
 		</cfscript>
@@ -685,13 +685,13 @@ If not, see <http://www.gnu.org/licenses/>.
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="externalListURL" access="public" returnType="string" output="false" hint="returns the URL for this to be show as a list externally">
+	<cffunction name="spokeExternalListURL" access="public" returnType="string" output="false" hint="returns the URL for this to be show as a list externally">
 		<cfscript>
 			return (StructKeyExists(variables.wheels.class.spokesettings, "listRoute") && isStruct(variables.wheels.class.spokesettings.listRoute))?urlFor(argumentCollection=variables.wheels.class.spokesettings.listRoute, key="spokekeyplaceholder"):"";
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="externalEditorURL" access="public" returnType="string" output="false" hint="returns the URL for this to be edited externally">
+	<cffunction name="spokeExternalEditorURL" access="public" returnType="string" output="false" hint="returns the URL for this to be edited externally">
 		<cfscript>
 			return (StructKeyExists(variables.wheels.class.spokesettings, "editorRoute") && isStruct(variables.wheels.class.spokesettings.editorRoute))?urlFor(argumentCollection=variables.wheels.class.spokesettings.editorRoute, key="spokekeyplaceholder"):"";
 		</cfscript>
@@ -699,7 +699,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="spokeURL" access="public" returnType="string" output="false" hint="returns the URL for this to be edited/viewed in the SpokeDM">
 		<cfscript>
-			return urlFor(controller="spokes", modelkey=this.modelName(), key=this.key());
+			return urlFor(controller="spokes", modelkey=this.spokemodelName(), key=this.key());
 		</cfscript>
 	</cffunction>
 	
@@ -728,7 +728,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfargument name="defaultValue" type="string" required="false" hint="A default value for this property.">
 		<!--- here are the additional spoke arguments --->
 		<cfargument name="spokeType" required="false" type="string" hint="A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown. NOTE: that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.">
-		<cfargument name="spokeOptions" required="false" type="array" hint="an array of strings that function as the options for a dropdown, or an array of {key, name} structs">
+		<cfargument name="spokeOptions" required="false" type="array" hint="an array of strings/{key, name} that function as the options for a dropdown, or an array of {key, name} structs">
 		<cfargument name="spokePlaceholder" required="false" type="string" hint="A string that is displayed as the placeholder on the form.">
 		<cfargument name="spokeTip" required="false" type="string" hint="A string that is displayed next to the label as a tip on the form.">
 		<cfscript>

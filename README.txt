@@ -66,7 +66,7 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 	
 	SpokeDM also extends CFWheels property function with the below params, we also make use of CFWheels label param which is what we display on the front end:
 		@param name: spokeType		 	required: No	type: string	A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown. NOTE that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.
-		@param name: spokeOptions	 	required: No	type: array		an array of strings that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
+		@param name: spokeOptions	 	required: No	type: array		an array of strings/{key, name} that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
 		@param name: spokePlaceholder	required: No	type: string	Used as the default/unselected value in dropdowns or as the placeholder value in all other inputs as suitable (some don't support it, like display or checkboxes)
 		@param name: spokeTip		 	required: No	type: string	Used as the tip that is displayed next to the label on the form
 	
