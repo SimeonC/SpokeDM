@@ -246,7 +246,7 @@ If not, see <http://www.gnu.org/licenses/>.
     DataSpoke.prototype.list = function(params, cb) {
       var _this = this;
       return DataSpoke.list(params, function(json) {
-        var col, i, option, _i, _j, _len, _len1, _ref, _ref1;
+        var i, option, prop, _i, _j, _len, _len1, _ref, _ref1;
         if (json.loginerror != null) {
           $rootScope.broadcast("SpokeUserLoggedOut", json);
           return;
@@ -255,11 +255,11 @@ If not, see <http://www.gnu.org/licenses/>.
           angular.extend(_this, json);
           for (i in _this.listing) {
             _this.listing[i].properties = [];
-            _ref = _this.columns;
+            _ref = _this.properties;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              col = _ref[_i];
-              _this.listing[i].properties.push(angular.extend({}, col, {
-                "value": _this.listing[i][col.name]
+              prop = _ref[_i];
+              _this.listing[i].properties.push(angular.extend({}, prop, {
+                "value": _this.listing[i][prop.name]
               }));
               if (_this.listing[i].type === 'dropdown') {
                 _ref1 = _this.listing[i].listing;
@@ -807,16 +807,16 @@ If not, see <http://www.gnu.org/licenses/>.
         });
       };
       $scope.newEditType = function() {
-        var column, data, _i, _len, _ref;
+        var data, property, _i, _len, _ref;
         $scope.typealert = '';
         data = {
           key: 'new',
           properties: []
         };
-        _ref = $scope.edittype.columns;
+        _ref = $scope.edittype.properties;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          column = _ref[_i];
-          data.properties.push(angular.copy(column));
+          property = _ref[_i];
+          data.properties.push(angular.copy(property));
         }
         data._originalproperties = angular.copy(data.properties);
         return $scope.edittype.listing.push(data);

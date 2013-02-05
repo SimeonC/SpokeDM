@@ -26,7 +26,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		Setup Notes: For a dropdown to be loaded you must define the relationship as belongsTo(name="type", spoketype=true); OR use the spokeType variables in a property call.
 		belongsTo also takes the argument spokename which is the display name of that relationship when showing this model.
 		We have extend the property call from cfwheels to have the additional params as follows:
-			property(name="columnname");
+			property(name="propertyname");
 				@param name: label				required: No	type: string	defines the label to be used on the front end
 				@param name: spokeType:			required: No	type: string	A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown
 									NOTE that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.
@@ -43,18 +43,18 @@ If not, see <http://www.gnu.org/licenses/>.
 		Properties that are on the spoke model instance are (all should be set through spokeInit()):
 			spokeInit()
 				@param name: Name			required: No	type: string	The display Name on the front end, defaults to modelName.
-				@param name: NameColumn		required: No	type: string	The Name of each instance (can be a composite column or a calculated column), defaults to 'name', errors if no name column.
+				@param name: NameProperty		required: No	type: string	The Name of each instance (can be a composite property or a calculated property), defaults to 'name', errors if no name property.
 				@param name: istype			required: No	type: string	If this is true we treat this model as a type, defaults to false
-				@param name: DescColumn		required: No	type: string	The Description of each instance (can be a composite column or a calculated column), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
-				@param name: HiddenFields	required: No	type: string	A list of column names that should NOT be displayed on the front end form, these override the columnorder setting.
-				@param name: ColumnOrder	required: No	type: string	An array of column keys that reference elements in the spokesettings.ColumnMap, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
-				@param name: searchColumns	required: No	type: string	a list of columns that are used in searches in addition to name and description. If not set uses name and description only.
-				@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only columns on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
+				@param name: DescProperty		required: No	type: string	The Description of each instance (can be a composite property or a calculated property), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
+				@param name: HiddenFields	required: No	type: string	A list of property names that should NOT be displayed on the front end form, these override the propertyorder setting.
+				@param name: PropertyOrder	required: No	type: string	An array of property keys that reference elements in the spokesettings.PropertyMap, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
+				@param name: searchProperties	required: No	type: string	a list of properties that are used in searches in addition to name and description. If not set uses name and description only.
+				@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only properties on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
 				@param name: hidePrimaryKey	required: No	type: string	if true the primary key will not be shown in the view as a field, defaults to true
 				@param name: editorRoute	required: No	type: string	a set of params as in urlFor() used for when you do not wish to allow editing/viewing inside wheels - loading it in SpokeDM will load it in another window.
 				@param name: listRoute		required: No	type: string	a set of params as in urlFor() used for when you do not wish to show a list of this model in SpokeDM, will create a link that will load it in another window.
 		
-		NOTE: for NameColumn and DescColumn if you use a composite/calculated column include the table name!
+		NOTE: for NameProperty and DescProperty if you use a composite/calculated property include the table name!
 	--->
 	
 	<!---
@@ -92,13 +92,13 @@ If not, see <http://www.gnu.org/licenses/>.
 	<cffunction name="spokeInit" access="public" returnType="void" output="false" hint="initial setup of ALL spokeSetting variables, also includes the callbacks to work with permissions so should ALLWAYS be called">
 		<cfargument name="name" required="false" type="string" hint="The display Name on the front end, defaults to modelName">
 		<cfargument name="istype" required="false" type="boolean" hint="If this is true we treat this model as a type, defaults to false">
-		<cfargument name="nameColumn" required="false" type="string" hint="The Name of each instance (can be a composite column or a calculated column), defaults to 'name'">
-		<cfargument name="DescColumn" required="false" type="string" hint="The Description of each instance (can be a composite column or a calculated column), defaults to ''">
-		<cfargument name="ColumnOrder" required="false" type="array" hint="An array of column names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order">
-		<cfargument name="HiddenFields" required="false" type="string" default="createdat,deletedat,updatedat" hint="An list of column names that should NOT be displayed on the front end form.">
-		<cfargument name="searchColumns" required="false" type="string" hint="a list of columns that are used in searches in addition to name and description. If not set uses name and description only.">
-		<cfargument name="searchOrderBy" required="false" type="string" hint="a order by clause for sorting search results, only columns on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function">
-		<cfargument name="hidePrimaryKey" required="false" type="boolean" default=true hint="Doesn't show the primary key column on the front end form - note that an enterprising user could still figure it out unless you use obfuscation">
+		<cfargument name="nameProperty" required="false" type="string" hint="The Name of each instance (can be a composite property or a calculated property), defaults to 'name'">
+		<cfargument name="DescProperty" required="false" type="string" hint="The Description of each instance (can be a composite property or a calculated property), defaults to ''">
+		<cfargument name="PropertyOrder" required="false" type="array" hint="An array of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order">
+		<cfargument name="HiddenFields" required="false" type="string" default="createdat,deletedat,updatedat" hint="An list of property names that should NOT be displayed on the front end form.">
+		<cfargument name="searchProperties" required="false" type="string" hint="a list of properties that are used in searches in addition to name and description. If not set uses name and description only.">
+		<cfargument name="searchOrderBy" required="false" type="string" hint="a order by clause for sorting search results, only properties on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function">
+		<cfargument name="hidePrimaryKey" required="false" type="boolean" default=true hint="Doesn't show the primary key property on the front end form - note that an enterprising user could still figure it out unless you use obfuscation">
 		<cfargument name="editorRoute" required="false" type="struct" hint="If this is supplied then this model will be edited via the page specified instead of in SpokeDM, is passed as params to URLFor()">
 		<cfargument name="listRoute" required="false" type="struct" hint="If this is supplied then this model will not list it's objects in Spoke DM but provide a link to the page specified, is passed as params to URLFor()">
 		<cfscript>
@@ -106,11 +106,11 @@ If not, see <http://www.gnu.org/licenses/>.
 			variables.wheels.class.spokesettings = {};
 			if(StructKeyExists(arguments, "name")) variables.wheels.class.spokesettings.name = arguments.name;
 			if(StructKeyExists(arguments, "istype")) variables.wheels.class.spokesettings.istype = arguments.istype;
-			if(StructKeyExists(arguments, "nameColumn")) variables.wheels.class.spokesettings.nameColumn = arguments.nameColumn;
-			if(StructKeyExists(arguments, "DescColumn")) variables.wheels.class.spokesettings.DescColumn = arguments.DescColumn;
-			if(StructKeyExists(arguments, "ColumnOrder")) variables.wheels.class.spokesettings.ColumnOrder = arguments.ColumnOrder;
+			if(StructKeyExists(arguments, "nameProperty")) variables.wheels.class.spokesettings.nameProperty = arguments.nameProperty;
+			if(StructKeyExists(arguments, "DescProperty")) variables.wheels.class.spokesettings.DescProperty = arguments.DescProperty;
+			if(StructKeyExists(arguments, "PropertyOrder")) variables.wheels.class.spokesettings.PropertyOrder = arguments.PropertyOrder;
 			variables.wheels.class.spokesettings.HiddenFields = arguments.HiddenFields;
-			if(StructKeyExists(arguments, "SearchColumns")) variables.wheels.class.spokesettings.SearchColumns = arguments.SearchColumns;
+			if(StructKeyExists(arguments, "SearchProperties")) variables.wheels.class.spokesettings.SearchProperties = arguments.SearchProperties;
 			if(StructKeyExists(arguments, "searchOrderBy")) variables.wheels.class.spokesettings.searchOrderBy = arguments.searchOrderBy;
 			variables.wheels.class.spokesettings.hidePrimaryKey = arguments.hidePrimaryKey;
 			if(StructKeyExists(arguments, "listRoute")){
@@ -246,13 +246,13 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfscript>
 			var modelPerms = model(this.modelname()).modelPermissions();
 			if(modelPerms == 0) return {"errors": [{"message": "You do not have permission to view that."}]};
-			var workingColumnOrder = this.spokeColumns();
-			var columns = [];
-			for(var col in workingColumnOrder) ArrayAppend(columns, this.$spokeProperty(col));
+			var workingPropertyOrder = this._spokeProperties();
+			var properties = [];
+			for(var prop in workingPropertyOrder) ArrayAppend(properties, this.$spokeProperty(prop));
 			return {
 				"name": this.spokeDisplayName(),
 				"listing": this.spokeList(true),
-				"columns": columns,
+				"properties": properties,
 				"permissions": modelPerms,
 				"errors": []
 			};
@@ -352,20 +352,20 @@ If not, see <http://www.gnu.org/licenses/>.
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="spokeColumns" access="public" returnType="array" output="false" hint="returns an ordered list of column names as they should be displayed on the front end">
+	<cffunction name="_spokeProperties" access="public" returnType="array" output="false" hint="returns an ordered list of property names as they should be displayed on the front end">
 		<cfscript>
 			var properties = this.propertyNames();
-			var workingColumnOrder = [];
-			if(!StructKeyExists(variables.wheels.class.spokesettings, "ColumnOrder")) workingColumnOrder = ListToArray(properties);
-			else workingColumnOrder = variables.wheels.class.spokesettings.columnOrder;
+			var workingPropertyOrder = [];
+			if(!StructKeyExists(variables.wheels.class.spokesettings, "PropertyOrder")) workingPropertyOrder = ListToArray(properties);
+			else workingPropertyOrder = variables.wheels.class.spokesettings.propertyOrder;
 			//remove hidden properties
 			if(StructKeyExists(variables.wheels.class.spokesettings, "HiddenFields")) for(var hide in ListToArray(variables.wheels.class.spokesettings.hiddenfields)){
-				var index = ArrayFindNoCase(workingColumnOrder, hide);
-				if(index) ArrayDeleteAt(workingColumnOrder, index);
+				var index = ArrayFindNoCase(workingPropertyOrder, hide);
+				if(index) ArrayDeleteAt(workingPropertyOrder, index);
 			}
 			//remove the primary key if set to remove
-			if(StructKeyExists(variables.wheels.class.spokesettings, "hidePrimaryKey") && variables.wheels.class.spokesettings.hidePrimaryKey) ArrayDelete(workingColumnOrder, this.primaryKey());
-			return workingColumnOrder;
+			if(StructKeyExists(variables.wheels.class.spokesettings, "hidePrimaryKey") && variables.wheels.class.spokesettings.hidePrimaryKey) ArrayDelete(workingPropertyOrder, this.primaryKey());
+			return workingPropertyOrder;
 		</cfscript>
 	</cffunction>
 	
@@ -375,15 +375,15 @@ If not, see <http://www.gnu.org/licenses/>.
 			var properties = this.propertyNames();
 			var types = "";
 			var uncachedTypes = "";
-			var workingColumnOrder = this.spokeColumns();
+			var workingPropertyOrder = this._spokeProperties();
 			//remove all foreign keys in the property list
 			for(var key in variables.wheels.class.associations){
 				if(StructKeyExists(variables.wheels.class.spokesettings, "hiddenfields") && ListContains(variables.wheels.class.spokesettings.hiddenfields, key)) continue;
 				//remove parent records, load the types
 				if(variables.wheels.class.associations[key].type == "belongsTo" && (var listindex = ListFindNoCase(properties, this.$foreignKey(key)))){
-					if(StructKeyExists(variables.wheels.class.associations[key], "spoketype") && variables.wheels.class.associations[key].spoketype && (!StructKeyExists(variables.wheels.class.spokesettings, "columnOrder") || ArrayContainsNoCase(variables.wheels.class.spokesettings.columnOrder, key))){
+					if(StructKeyExists(variables.wheels.class.associations[key], "spoketype") && variables.wheels.class.associations[key].spoketype && (!StructKeyExists(variables.wheels.class.spokesettings, "propertyOrder") || ArrayContainsNoCase(variables.wheels.class.spokesettings.propertyOrder, key))){
 						types &= "," & key;
-					}else if(var index = ArrayFindNoCase(workingColumnOrder, this.$foreignKey(key))) ArrayDeleteAt(workingColumnOrder, index);
+					}else if(var index = ArrayFindNoCase(workingPropertyOrder, this.$foreignKey(key))) ArrayDeleteAt(workingPropertyOrder, index);
 					properties = ListDeleteAt(properties, listindex);
 				}
 			}
@@ -420,7 +420,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				if(results[properties[i]].type == "datetime" || results[properties[i]].type == "date" || results[properties[i]].type == "time") results[properties[i]]["value"] = Trim('#DateFormat(results[properties[i]]["value"], APPLICATION.spokeDateFormat)# #TimeFormat(results[properties[i]]["value"], APPLICATION.spokeTimeFormat)#');
 			}
 			var returnArray = [];
-			for(var i = 1; i <= ArrayLen(workingColumnOrder); i++) if(StructKeyExists(results, workingColumnOrder[i])) ArrayAppend(returnArray, results[workingColumnOrder[i]]);
+			for(var i = 1; i <= ArrayLen(workingPropertyOrder); i++) if(StructKeyExists(results, workingPropertyOrder[i])) ArrayAppend(returnArray, results[workingPropertyOrder[i]]);
 			return returnArray;
 		</cfscript>
 	</cffunction>
@@ -498,21 +498,12 @@ If not, see <http://www.gnu.org/licenses/>.
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="spokeSearch" access="public" returnType="struct" output="false" hint="takes in a search value, an optional record limit and returns an array of spoke set data. The model must have at least ONE column that has a validation type of string - ie text/varchar, usually nameColumn">
+	<cffunction name="spokeSearch" access="public" returnType="struct" output="false" hint="takes in a search value, an optional record limit and returns an array of spoke set data. The model must have at least ONE property that has a validation type of string - ie text/varchar, usually nameProperty">
 		<cfargument name="searchValue" required="true" type="string" hint="the string to search within the fields">
 		<cfargument name="maxRows" required="false" type="numeric" default=10 hint="Maximum rows to return, default is based on sensible height of a box and scrollability and just a random number I liked at the time">
 		<cfscript>
 			if(!Len(arguments.searchValue)) return {"totalcount": 0, "query": []};//return nothing if no search value
 			if(!StructKeyExists(SESSION, "spokecache")) SESSION.spokecache = {};
-			var whereClause = "";
-			if(StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)){
-				var columnArray = ListToArray(variables.wheels.class.spokesettings.searchColumns);
-				for(var i = 1; i <= ArrayLen(columnArray); i++){
-					if(StructKeyExists(variables.wheels.class.properties, columnArray[i]) && variables.wheels.class.properties[columnArray[i]].validationType == "string"){//only filter on valid, non calculated, string fields.
-						whereClause &= " OR #variables.wheels.class.properties[columnArray[i]].column# LIKE '%#arguments.searchValue#%'";
-					}
-				}
-			}
 			var modelname = this.modelname();
 			if(!StructKeyExists(SESSION.spokecache, modelname)
 				|| !StructKeyExists(APPLICATION, "spokeSearchRefresh")//first query call
@@ -529,18 +520,18 @@ If not, see <http://www.gnu.org/licenses/>.
 			SELECT * FROM cachedquery
 			WHERE false
 			<cfif 
-				(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn))
-				OR StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")
+				(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameProperty))
+				OR StructKeyExists(variables.wheels.class.spokesettings, "NameProperty")
 				OR ListContainsNoCase(this.propertyNames(), "name")>
 				OR name LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
 			</cfif>
-			<cfif StructKeyExists(variables.wheels.class.spokesettings, "DescColumn") || Len(StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes")) || Len(ArrayFindOneOf(this.columns(), "description,desc,note,notes"))>
+			<cfif StructKeyExists(variables.wheels.class.spokesettings, "DescProperty") || Len(StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes")) || Len(ArrayFindOneOf(this.columns(), "description,desc,note,notes"))>
 				OR description LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
 			</cfif>
-			<cfif StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)>
-				<cfset var searchColumns = ListToArray(variables.wheels.class.spokesettings.searchColumns)>
-				<cfloop index="i" from="1" to="#ArrayLen(searchColumns)#" step="1">
-					OR #searchColumns[i]# LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
+			<cfif StructKeyExists(variables.wheels.class.spokesettings, "searchProperties") && Len(variables.wheels.class.spokesettings.searchProperties)>
+				<cfset var searchProperties = ListToArray(variables.wheels.class.spokesettings.searchProperties)>
+				<cfloop index="i" from="1" to="#ArrayLen(searchProperties)#" step="1">
+					OR #searchProperties[i]# LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
 				</cfloop>
 			</cfif>
 		</cfquery>
@@ -566,7 +557,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				"name": (arguments.property == this.primarykey())?"key":arguments.property,
 				"required": false
 			};
-			var result = {"label": Capitalize((arguments.property == this.primarykey())?"key":arguments.property)};//defaults to the columnname
+			var result = {"label": Capitalize((arguments.property == this.primarykey())?"key":arguments.property)};//defaults to the propertyname
 			
 			//set types and inherently anything we need off the class.properties struct
 			//types are: display, integer, string, datetime, boolean, float, binary, array(display only), struct(display only)
@@ -599,7 +590,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	</cffunction>
 	
 	<cffunction name="$spokeFindAllGenerator" access="public" returnType="struct" hint="Generates the select sql and other settings for listing all instances of a model, all findall arguments are passed through (except select and returnAs arguments), essentially modifies the arguments struct and returns it">
-		<cfargument name="callbacks" type="boolean" required="false" default=false hint="prevent callbacks as these have a tendancy to mess up when we don't return all the correct columns - can be overriden">
+		<cfargument name="callbacks" type="boolean" required="false" default=false hint="prevent callbacks as these have a tendancy to mess up when we don't return all the correct properties - can be overriden">
 		<cfscript>
 			this.$spokeValidityCheck();
 			var filters = this.listFilter();
@@ -611,16 +602,16 @@ If not, see <http://www.gnu.org/licenses/>.
 				return arguments;
 			}
 			arguments["select"] = "#this.tableName()#.#this.primaryKey()# as 'key'";//note that spoke cannot work with composite keys ATM
-			//calculate name column
-			if(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameColumn)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.NameColumn].sql#) as name";
-			else if(StructKeyExists(variables.wheels.class.spokesettings, "NameColumn")) arguments.select &= ",(#variables.wheels.class.spokesettings.NameColumn#) as name";
+			//calculate name property
+			if(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.NameProperty].sql#) as name";
+			else if(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.NameProperty#) as name";
 			else if(StructKeyExists(variables.wheels.class.calculatedProperties, "name")) arguments.select &= ",(#variables.wheels.class.calculatedProperties.name.sql#) as name";
 			else if(ArrayFindNoCase(this.columns(), "name")) arguments.select &= ",#this.tableName()#.name";
 			else throw(type="spokeModelException", message="There was no suitable Name field on the model ""#this.modelName()#"", try setting it manually in spokeInit(). Spoke Settings: #StructKeyList(variables.wheels.class.spokesettings)#");
 			
-			//calculate description column, if not, set to blank
-			if(StructKeyExists(variables.wheels.class.spokesettings, "DescColumn") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescColumn)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescColumn].sql#) as description";
-			else if(StructKeyExists(variables.wheels.class.spokesettings, "DescColumn")) arguments.select &= ",(#variables.wheels.class.spokesettings.DescColumn#) as description";
+			//calculate description property, if not, set to blank
+			if(StructKeyExists(variables.wheels.class.spokesettings, "DescProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescProperty].sql#) as description";
+			else if(StructKeyExists(variables.wheels.class.spokesettings, "DescProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.DescProperty#) as description";
 			else{
 				var calcName = StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes");
 				if(Len(calcName)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[calcName].sql#) as description";
@@ -630,7 +621,7 @@ If not, see <http://www.gnu.org/licenses/>.
 					else arguments.select &= ",'' as description";
 				}
 			}
-			if(StructKeyExists(variables.wheels.class.spokesettings, "searchColumns") && Len(variables.wheels.class.spokesettings.searchColumns)) arguments.select &= "," & variables.wheels.class.spokesettings.searchColumns;
+			if(StructKeyExists(variables.wheels.class.spokesettings, "searchProperties") && Len(variables.wheels.class.spokesettings.searchProperties)) arguments.select &= "," & variables.wheels.class.spokesettings.searchProperties;
 			variables.wheels.class.spokesettings.$selectSQL = arguments.select;
 			return arguments;
 		</cfscript>

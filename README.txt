@@ -54,13 +54,13 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 	In the init function a call to spokeInit() must be made, it is important that this is called before all callback, property and associations calls. spokeInit() takes the following parameters:
 		@param name: name			required: No	type: string					The display Name on the front end, defaults to modelName
 		@param name: istype			required: No	type: boolean					If this is true we treat this model as a type, defaults to false
-		@param name: nameColumn		required: No	type: string					The Name of each instance (can be a composite column or a calculated column), defaults to 'name'
-		@param name: DescColumn		required: No	type: string					The Description of each instance (can be a composite column or a calculated column), defaults to ''
-		@param name: ColumnOrder	required: No	type: array						An array of column names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
-		@param name: HiddenFields	required: No	type: string					An list of column names that should NOT be displayed on the front end form.
-		@param name: searchColumns	required: No	type: string					a list of columns that are used in searches in addition to name and description. If not set uses name and description only.
-		@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only columns on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
-		@param name: hidePrimaryKey	required: No	type: boolean	default: true	Do not show the primary key column on the front end form - note that an enterprising user could still figure it out unless you use obfuscation
+		@param name: nameProperty		required: No	type: string					The Name of each instance (can be a composite property or a calculated property), defaults to 'name'
+		@param name: DescProperty		required: No	type: string					The Description of each instance (can be a composite property or a calculated property), defaults to ''
+		@param name: PropertyOrder	required: No	type: array						An array of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
+		@param name: HiddenFields	required: No	type: string					An list of property names that should NOT be displayed on the front end form.
+		@param name: searchProperties	required: No	type: string					a list of properties that are used in searches in addition to name and description. If not set uses name and description only.
+		@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only properties on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
+		@param name: hidePrimaryKey	required: No	type: boolean	default: true	Do not show the primary key property on the front end form - note that an enterprising user could still figure it out unless you use obfuscation
 		@param name: editorRoute	required: No	type: struct					If this is supplied then this model will be edited/viewed via the page specified instead of in SpokeDM, is passed as params to URLFor()
 		@param name: listRoute		required: No	type: struct					If this is supplied then this model will not list it's objects in Spoke DM but provide a link to the page specified, is passed as params to URLFor()
 	

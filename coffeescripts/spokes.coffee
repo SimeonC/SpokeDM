@@ -138,8 +138,8 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 				angular.extend @, json
 				for i of @listing
 					@listing[i].properties = []
-					for col in @columns
-						@listing[i].properties.push angular.extend {}, col, {"value": @listing[i][col.name]}
+					for prop in @properties
+						@listing[i].properties.push angular.extend {}, prop, {"value": @listing[i][prop.name]}
 						if @listing[i].type is 'dropdown'
 							for option in @listing[i].listing
 								if object[item].value is option.key
@@ -442,7 +442,7 @@ class SpokeMain
 		$scope.newEditType = ->
 			$scope.typealert = ''
 			data = {key: 'new', properties: []}
-			data.properties.push(angular.copy column) for column in $scope.edittype.columns
+			data.properties.push(angular.copy property) for property in $scope.edittype.properties
 			data._originalproperties = angular.copy data.properties
 			$scope.edittype.listing.push data
 		$scope.dirtySaveType = (type) ->
