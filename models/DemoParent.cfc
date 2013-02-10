@@ -14,7 +14,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public along with SpokeDM.  
 If not, see <http://www.gnu.org/licenses/>.
 --->
-<cfcomponent extends="SpokeModel">
+<cfcomponent extends="Spokemodel">
 	
 	<cffunction name="init">
 		<cfscript>

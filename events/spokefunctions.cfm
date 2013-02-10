@@ -30,3 +30,13 @@ If not, see <http://www.gnu.org/licenses/>.
 		return ArrayFindOneOf(StructKeyArray(arguments.struct), arguments.searchList);
 	</cfscript>
 </cffunction>
+<cffunction name="$unSanitize" access="public" returnType="string" output="false" hint="Reverses a call to HTMLEditFormat()">
+	<cfargument name="string" type="string" required="true">
+	<cfscript>
+		arguments.string = REReplaceNoCase(arguments.string, "&quot;", """", "all");
+		arguments.string = REReplaceNoCase(arguments.string, "&lt;", "<", "all");
+		arguments.string = REReplaceNoCase(arguments.string, "&gt;", ">", "all");
+		arguments.string = REReplaceNoCase(arguments.string, "&amp;", "&", "all");
+		return arguments.string;
+	</cfscript>
+</cffunction>

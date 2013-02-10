@@ -50,35 +50,38 @@ NOTE: if you cannot see any of the pages, try reloading CFWHeels under testing a
 WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do not work, a possible cause may be that you have a mysql database and have not turned on Alias Handling in the Railo datasource settings.
 
 1. Create all the models that you wish to manage through SpokeDM as per a standard CFWheels app with the following changes.
-	Every model extends SpokeModel instead of Model.
+	Every model extends Spokemodel instead of Model.
 	In the init function a call to spokeInit() must be made, it is important that this is called before all callback, property and associations calls. spokeInit() takes the following parameters:
-		@param name: name			required: No	type: string					The display Name on the front end, defaults to modelName
-		@param name: istype			required: No	type: boolean					If this is true we treat this model as a type, defaults to false
-		@param name: nameProperty		required: No	type: string					The Name of each instance (can be a composite property or a calculated property), defaults to 'name'
-		@param name: DescProperty		required: No	type: string					The Description of each instance (can be a composite property or a calculated property), defaults to ''
-		@param name: PropertyOrder	required: No	type: array						An array of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
-		@param name: HiddenFields	required: No	type: string					An list of property names that should NOT be displayed on the front end form.
-		@param name: searchProperties	required: No	type: string					a list of properties that are used in searches in addition to name and description. If not set uses name and description only.
-		@param name: searchOrderBy	required: No	type: string	a order by clause for sorting search results, only properties on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
-		@param name: hidePrimaryKey	required: No	type: boolean	default: true	Do not show the primary key property on the front end form - note that an enterprising user could still figure it out unless you use obfuscation
-		@param name: editorRoute	required: No	type: struct					If this is supplied then this model will be edited/viewed via the page specified instead of in SpokeDM, is passed as params to URLFor()
-		@param name: listRoute		required: No	type: struct					If this is supplied then this model will not list it's objects in Spoke DM but provide a link to the page specified, is passed as params to URLFor()
+		@param name: Name					required: No	type: string	The display Name on the front end, defaults to modelName.
+		@param name: NameProperty			required: No	type: string	The Name of each instance (can be a composite property or a calculated property), defaults to 'name', errors if no name property.
+		@param name: istype					required: No	type: string	If this is true we treat this model as a type, defaults to false
+		@param name: DescProperty			required: No	type: string	The Description of each instance (can be a composite property or a calculated property), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
+		@param name: HiddenFields			required: No	type: string	A list of property names that should NOT be displayed on the front end form, these override the propertyorder setting.
+		@param name: PropertyOrder			required: No	type: string	An comma delimeted list of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
+		@param name: invisibleProperties	required: No	type: string	A list of property names that will be passed as _invis, these can be edited on the front end in custom includes and will be saved
+		@param name: searchProperties		required: No	type: string	a list of properties that are used in searches in addition to name and description. If not set uses name and description only.
+		@param name: searchOrderBy			required: No	type: string	a order by clause for sorting search results, only properties on this table are valid, should be formatted the same as orderBy on the findAll CFWheels function
+		@param name: hidePrimaryKey			required: No	type: string	if true the primary key will not be shown in the view as a field, defaults to true
+		@param name: editorRoute			required: No	type: string	a set of params as in urlFor() used for when you do not wish to allow editing/viewing inside wheels - loading it in SpokeDM will load it in another window.
+		@param name: listRoute				required: No	type: string	a set of params as in urlFor() used for when you do not wish to show a list of this model in SpokeDM, will create a link that will load it in another window.
 	
 	SpokeDM also extends CFWheels property function with the below params, we also make use of CFWheels label param which is what we display on the front end:
+		@param name: label				required: No	type: string	defines the label to be used on the front end
 		@param name: spokeType		 	required: No	type: string	A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown. NOTE that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.
 		@param name: spokeOptions	 	required: No	type: array		an array of strings/{key, name} that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
 		@param name: spokePlaceholder	required: No	type: string	Used as the default/unselected value in dropdowns or as the placeholder value in all other inputs as suitable (some don't support it, like display or checkboxes)
 		@param name: spokeTip		 	required: No	type: string	Used as the tip that is displayed next to the label on the form
+		@param name: spokeSanitize		required: No	type: boolean	If this is true then the value will be stored in the DB via HTMLEditFormat and unSanitized when editing, use this for fields which are also used in a spokeType = display or description field as these utilise ng-bind-html-unsafe
 	
 	We also have added a param to the belongsTo() function call that allows us to specify whether the relationship should be treated as a type/lookup and would be displayed as a dropdown on the front end:
 		@param name: spokeType			required: No	type: boolean	true will display on the front end as a dropdown not a related table
 		@param name: spokeBeforeList	required: No	type: string	the name of a function that returns a string to filter this model when it is shown as a related list, for relating to a new parent.
 	
-	There is also a custom function called listFilter in the SpokeModel.cfc you can overwrite if you wish to filter what objects are shown in a list, for example; by the currently logged in user. It should return a struct that will be passed to a findAll (essentially).
+	There is also a custom function called listFilter in the Spokemodel.cfc you can overwrite if you wish to filter what objects are shown in a list, for example; by the currently logged in user. It should return a struct that will be passed to a findAll (essentially).
 	
 2. If using authentication, permissions or assorted login protocols make sure you look through:
 	spokeCheckLogin in controllers/Controller.cfc
-	modelPermissions and instPermissions in models/SpokeModel.cfc
+	modelPermissions and instPermissions in models/Spokemodel.cfc
 	the javascript on the views/Spokes/layout.cfm
 	
 	NOTE: When using encrypted passwords (and we highly recommend you do), either use an external page to edit the model that contains the password or Use onBeforeValidate and afterFind callbacks in the model to encrypt and unencrypt the password. (We reccomend the former)

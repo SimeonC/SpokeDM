@@ -73,7 +73,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			if(!spokeCheckLogin()){//see base controller
 				return renderWith({"loginerror":"You have been logged out."});
 			}
-			if(StructKeyExists(params, "modelkey") && params.modelkey == "test") return renderWith(CreateObject("component","/models/SpokeModel").spokeTestDisplayProperties(argumentCollection=params));
+			if(StructKeyExists(params, "modelkey") && params.modelkey == "test") return renderWith(CreateObject("component","/models/Spokemodel").spokeTestDisplayProperties(argumentCollection=params));
 			if(StructKeyExists(params, "modelkey") && StructKeyExists(params, "list") && params.list) return renderWith(model(params.modelkey).spokeTypeLoad());
 			if(!StructKeyExists(params, "modelkey") || (!StructKeyExists(params, "key") && request.cgi.request_method != "GET")) return renderWith({"errors": [{"message": "ERROR!! Cannot compute invalid values, please try again..."}]});
 			var model = model(params.modelkey);
@@ -90,6 +90,7 @@ If not, see <http://www.gnu.org/licenses/>.
 					if(isStruct(item)){
 						if(Min(item.instPermissions(), modelPerms) < 2) return renderWith({'errors': [{"message": "You do not have permissions to save this #model.displayName()#"}]});
 						item.setProperties(params.origdata);
+						if(!item.valid()) return renderWith({'errors': item.allErrors()});
 						if(!(StructKeyExists(params, "dirtyforce") && params.dirtyforce) && item.hasChanged()) return renderWith({"dirtywarnings": item.allChanges()});
 						item.update(params.data);
 					}

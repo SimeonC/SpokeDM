@@ -24,7 +24,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfscript>
 			if(isDefined("model")){
 				//is defined so we run the tests
-				assert("isInstanceOf(model, 'SpokeModel')");
+				assert("isInstanceOf(model, 'Spokemodel')");
 				assert("ListLen(model.primaryKeys()) EQ 1");
 			}
 		</cfscript>

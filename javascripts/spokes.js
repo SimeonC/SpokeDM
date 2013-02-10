@@ -33,6 +33,9 @@ If not, see <http://www.gnu.org/licenses/>.
       return this[modelkey][key];
     };
     DataCache.save = function(modelkey, key, data) {
+      if (key === 'new') {
+        return;
+      }
       if (!this[modelkey]) {
         this[modelkey] = {};
       }
@@ -123,7 +126,6 @@ If not, see <http://www.gnu.org/licenses/>.
         }
         if (!(json.errors != null) || json.errors.length === 0) {
           if (json.properties) {
-            json.properties._invischanged = false;
             _ref = json.properties;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               item = _ref[_i];
@@ -165,6 +167,7 @@ If not, see <http://www.gnu.org/licenses/>.
           }
           angular.extend(_this, json);
           _this._originalproperties = angular.copy(_this.properties);
+          _this._originalinvis = angular.copy(_this._invis);
         }
         if (_this.key !== 'new') {
           DataCache.save(_this.modelkey, _this.key, _this);
@@ -175,7 +178,7 @@ If not, see <http://www.gnu.org/licenses/>.
       });
     };
     DataSpoke.prototype.save = function(cb) {
-      var data, item, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2,
+      var data, item, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3,
         _this = this;
       data = {
         data: {},
@@ -191,12 +194,15 @@ If not, see <http://www.gnu.org/licenses/>.
         item = _ref1[_j];
         data.origdata[item.name] = item.type === 'dropdown' ? item.value.key : item.type === 'boolean' && item.value ? 1 : item.type === 'boolean' && !item.value ? 0 : item.value;
       }
-      if ((this._invis != null) && this._invis) {
-        _ref2 = this._invis;
-        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-          item = _ref2[_k];
-          data.data[item.name] = item.value;
-        }
+      _ref2 = this._invis;
+      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+        item = _ref2[_k];
+        data.data[item.name] = item.value;
+      }
+      _ref3 = this._originalinvis;
+      for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+        item = _ref3[_l];
+        data.origdata[item.name] = item.value;
       }
       if (this.dirtyforce) {
         data.dirtyforce = this.dirtyforce;
@@ -217,8 +223,7 @@ If not, see <http://www.gnu.org/licenses/>.
         }
         if (!(json.errors != null) || json.errors.length === 0) {
           _this._originalproperties = angular.copy(_this.properties);
-          delete _this._invis;
-          _this._invischanged = false;
+          _this._originalinvis = angular.copy(_this._invis);
           DataCache.save(_this.modelkey, _this.key, '');
           if (json.key != null) {
             _this.key = json.key;
@@ -297,13 +302,16 @@ If not, see <http://www.gnu.org/licenses/>.
       $scope.afterNewCallbacks = [];
       $scope.registerNewCallback = function(scope, cb) {
         return $scope.afterNewCallbacks.push({
-          "scope": scope,
+          "scope": angular.extend({}, scope),
           "fire": cb
         });
       };
       $scope.fireNewCallback = function() {
         var callback;
         callback = $scope.afterNewCallbacks.pop();
+        if (!callback) {
+          return;
+        }
         angular.extend($scope, callback.scope);
         return callback.fire(json.key);
       };
@@ -623,7 +631,6 @@ If not, see <http://www.gnu.org/licenses/>.
         $scope.spoke.save(function(json) {
           var error, _i, _len, _ref, _results;
           delete $scope.dirtywarnings;
-          console.log(origSpokeKey);
           if (json.dirtywarnings) {
             $scope.dirtywarnings = json.dirtywarnings;
             return $scope.appendAlert('warning', 'Warning!', 'While saving we noticed another user has already saved changes to this object; Please check the changes and click "Force Save" if you wish to overwrite them');
@@ -687,7 +694,7 @@ If not, see <http://www.gnu.org/licenses/>.
         });
       };
       $scope.isUnchanged = function() {
-        return !$scope.spoke._invischanged && angular.equals($scope.spoke.properties, $scope.spoke._originalproperties);
+        return angular.equals($scope.spoke._invis, $scope.spoke._originalinvis) && angular.equals($scope.spoke.properties, $scope.spoke._originalproperties);
       };
       $scope.expanderClass = function(item) {
         if ((item != null) && 'expanded' in item && item.expanded) {
@@ -729,7 +736,6 @@ If not, see <http://www.gnu.org/licenses/>.
         $scope.selectParent({
           'key': newkey
         });
-        $scope.spoke._invischanged = true;
         return $scope.appendAlert('info', 'Info', 'We have redirected you back to the ' + $scope.spoke.name + ' you were editing and have added the created ' + $scope.linkparents.name + ' to it. Please save the ' + $scope.spoke.name + ' to save the new link.');
       };
       $scope.unlinkParent = function(parent) {
@@ -739,23 +745,9 @@ If not, see <http://www.gnu.org/licenses/>.
         linkResource.key = $scope.spoke.key;
         linkResource.parent = parent.modelkey;
         return linkResource.get(function(json) {
-          var val;
-          val = {
-            "name": json.propertyname,
-            "value": '',
-            "type": "string"
-          };
-          if ($scope.spoke._invis != null) {
-            $scope.spoke._invis.push(val);
-          } else {
-            $scope.spoke._invis = [val];
-          }
-          $scope.spoke._originalproperties.push({
-            "name": json.propertyname,
-            "value": parent.data[0].key
-          });
+          $scope.spoke._invis[json.propertyname] = '';
+          $scope.spoke._originalinvis[json.propertyname] = parent.data[0].key;
           parent.data = [];
-          $scope.spoke._invischanged = true;
           return $scope.appendAlert('info', 'Info', 'We have un-assigned the ' + json.name + ' from the ' + $scope.spoke.name + '. Please save the ' + $scope.spoke.name + ' to save the un-link.');
         });
       };
@@ -772,21 +764,8 @@ If not, see <http://www.gnu.org/licenses/>.
         });
       };
       return $scope.selectParent = function(parent) {
-        var val;
-        val = {
-          "name": $scope.linkparents.propertyname,
-          "value": parent.key
-        };
-        if ($scope.spoke._invis != null) {
-          $scope.spoke._invis.push(val);
-        } else {
-          $scope.spoke._invis = [val];
-        }
-        $scope.spoke._invischanged = true;
-        $scope.spoke._originalproperties.push({
-          "name": $scope.linkparents.propertyname,
-          "value": $scope._linkparent.data.length > 0 ? $scope._linkparent.data[0].key : ''
-        });
+        $scope.spoke._invis[$scope.linkparents.propertyname] = parent.key;
+        $scope.spoke._originalinvis[$scope.linkparents.propertyname] = $scope._linkparent.data.length > 0 ? $scope._linkparent.data[0].key : '';
         $scope._linkparent.data[0] = parent;
         $scope.appendAlert('info', 'Info', 'We have assigned the ' + $scope.linkparents.name + ' to the ' + $scope.spoke.name + '. Please save the ' + $scope.spoke.name + ' to save the link.');
         return $('#parentLinkModal').modal('hide');

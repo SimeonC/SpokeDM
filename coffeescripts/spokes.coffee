@@ -24,6 +24,7 @@ module.factory 'DataCache', () ->
 	DataCache.get = (modelkey, key) ->
 		return @[modelkey][key]
 	DataCache.save = (modelkey, key, data) ->
+		if key is 'new' then return
 		if not @[modelkey]
 			@[modelkey] = {}
 		@[modelkey][key] = data
@@ -76,7 +77,6 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 				return
 			if not json.errors? or json.errors.length is 0
 				if json.properties
-					json.properties._invischanged = false
 					for item in json.properties
 						if item.type is 'dropdown'
 							for option in item.listing
@@ -92,6 +92,7 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 						for i of json.listing when DataCache.find json.modelkey, json.listing[i].key and DataCache.get json.modelkey, json.listing[i].key is 'delete' then json.listing.splice i, 1
 				angular.extend @, json
 				@_originalproperties = angular.copy @properties #properties is an array of objects - to maintain an ordering
+				@_originalinvis = angular.copy @_invis
 			if @key isnt 'new' then DataCache.save @modelkey, @key, @
 			cb? json
 			return
@@ -103,8 +104,10 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 			data.data[item.name] = if item.type is 'dropdown' then item.value.key else if item.type is 'boolean' and item.value then 1 else if item.type is 'boolean' and not item.value then 0 else item.value
 		for item in @_originalproperties
 			data.origdata[item.name] = if item.type is 'dropdown' then item.value.key else if item.type is 'boolean' and item.value then 1 else if item.type is 'boolean' and not item.value then 0 else item.value
-		if @_invis? and @_invis then for item in @_invis
+		for item in @_invis
 			data.data[item.name] = item.value
+		for item in @_originalinvis
+			data.origdata[item.name] = item.value
 		if @dirtyforce then data.dirtyforce = @dirtyforce
 		return DataSpoke.save {modelkey: @modelkey, key: @key}, data, (json) =>
 			if json.loginerror?
@@ -115,8 +118,7 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 				return
 			if not json.errors? or json.errors.length is 0
 				@_originalproperties = angular.copy @properties
-				delete @_invis
-				@_invischanged = false
+				@_originalinvis = angular.copy @_invis
 				#update cache
 				DataCache.save @modelkey, @key, ''#evaluates to false so we reload the object next get process
 			
@@ -161,10 +163,11 @@ class SpokeMain
 		$scope.afterNewCallbacks = []
 		$scope.registerNewCallback = (scope, cb) ->
 			$scope.afterNewCallbacks.push
-				"scope": scope
+				"scope": angular.extend {}, scope
 				"fire": cb
 		$scope.fireNewCallback = () ->
 			callback = $scope.afterNewCallbacks.pop()
+			if not callback then return
 			angular.extend $scope, callback.scope
 			callback.fire json.key
 		
@@ -339,7 +342,6 @@ class SpokeMain
 			origSpokeKey = $scope.spoke.key
 			$scope.spoke.save (json) ->
 				delete $scope.dirtywarnings
-				console.log origSpokeKey
 				if json.dirtywarnings
 					$scope.dirtywarnings = json.dirtywarnings
 					$scope.appendAlert 'warning', 'Warning!', 'While saving we noticed another user has already saved changes to this object; Please check the changes and click "Force Save" if you wish to overwrite them'
@@ -371,7 +373,7 @@ class SpokeMain
 					$scope.spoke.properties = []
 					$scope.spoke.associations.children = []
 					$scope.spoke.permissions = 0
-		$scope.isUnchanged = -> !$scope.spoke._invischanged && angular.equals $scope.spoke.properties, $scope.spoke._originalproperties
+		$scope.isUnchanged = -> angular.equals($scope.spoke._invis, $scope.spoke._originalinvis) && angular.equals $scope.spoke.properties, $scope.spoke._originalproperties
 		$scope.expanderClass = (item) -> if item? and 'expanded' of item and item.expanded then "down" else "right"
 		$scope.expanderToggle = (item) -> item.expanded = not (item.expanded? and item.expanded)
 		$scope.expand = (item) -> item? and 'expanded' of item and item.expanded
@@ -395,7 +397,6 @@ class SpokeMain
 		$scope.afterNewCallback = (newkey) ->
 			$scope.selectParent
 				'key': newkey
-			$scope.spoke._invischanged = true
 			$scope.appendAlert 'info', 'Info', 'We have redirected you back to the ' + $scope.spoke.name + ' you were editing and have added the created ' + $scope.linkparents.name + ' to it. Please save the ' + $scope.spoke.name + ' to save the new link.'
 		
 		$scope.unlinkParent = (parent) ->
@@ -404,11 +405,9 @@ class SpokeMain
 			linkResource.key = $scope.spoke.key
 			linkResource.parent = parent.modelkey
 			linkResource.get (json) ->
-				val = {"name": json.propertyname, "value": '', "type": "string"}
-				if $scope.spoke._invis? then $scope.spoke._invis.push val else $scope.spoke._invis = [val]
-				$scope.spoke._originalproperties.push {"name": json.propertyname, "value": parent.data[0].key}
+				$scope.spoke._invis[json.propertyname] = ''
+				$scope.spoke._originalinvis[json.propertyname] = parent.data[0].key
 				parent.data = []
-				$scope.spoke._invischanged = true
 				$scope.appendAlert 'info', 'Info', 'We have un-assigned the ' + json.name + ' from the ' + $scope.spoke.name + '. Please save the ' + $scope.spoke.name + ' to save the un-link.'
 		
 		$scope.relinkParent = (parent) ->
@@ -422,10 +421,8 @@ class SpokeMain
 				$('#parentLinkModal').modal 'show'
 		
 		$scope.selectParent = (parent) ->
-			val = {"name": $scope.linkparents.propertyname, "value": parent.key}
-			if $scope.spoke._invis? then $scope.spoke._invis.push val else $scope.spoke._invis = [val]
-			$scope.spoke._invischanged = true
-			$scope.spoke._originalproperties.push {"name": $scope.linkparents.propertyname, "value": if $scope._linkparent.data.length > 0 then $scope._linkparent.data[0].key else ''}
+			$scope.spoke._invis[$scope.linkparents.propertyname] = parent.key
+			$scope.spoke._originalinvis[$scope.linkparents.propertyname] = if $scope._linkparent.data.length > 0 then $scope._linkparent.data[0].key else ''
 			$scope._linkparent.data[0] = parent
 			$scope.appendAlert 'info', 'Info', 'We have assigned the ' + $scope.linkparents.name + ' to the ' + $scope.spoke.name + '. Please save the ' + $scope.spoke.name + ' to save the link.'
 			$('#parentLinkModal').modal 'hide'
