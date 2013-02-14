@@ -33,21 +33,25 @@ If not, see <http://www.gnu.org/licenses/>.
 									NOTE that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.
 				@param name: spokeOptions		required: No	type: string	an array of strings/{key, name} that are used as the dropdown options. (If this is defined then the spoketype doesn't need to be set)
 				@param name: spokePlaceholder	required: No	type: string	Used as the default/unselected value in dropdowns or as the placeholder value in all other inputs as suitable (some don't support it, like display or checkboxes)
-				@param name: spokeDesc			required: No	type: string	Used as the description that is displayed next to the label on the form
+				@param name: spokeDescription	required: No	type: string	Used as the description that is displayed next to the label on the form
 				@param name: spokeTip			required: No	type: string	displayed as a tooltip on the input
+				@param name: spokeRequired		required: No	type: boolean	Manually sets the required value - cannot be unrequired if the column cannot be set to null
 				@param name: spokeSanitize		required: No	type: boolean	If this is true then the value will be stored in the DB via HTMLEditFormat and unSanitized when editing, use this for fields which are also used in a spokeType = display or description field as these utilise ng-bind-html-unsafe
 			
 			belongsTo();
 				@param name: spokeType			required: No	type: boolean	true will display on the front end as a dropdown not a related table
 				@param name: spokeBeforeList	required: No	type: string	the name of a function that returns a struct to filter this model when it is shown as a related list, for relating to a new parent.
 																				the function takes the optional parameter currentKey if being replaced
+			hasMany():
+				@param name: spokeBeforeList	required: No	type: string	the name of a function that returns a struct to filter this model when it is shown as a related list, for relating to a new parent.
+																				the function takes the optional parameter currentKey if being replaced
 		
 		Properties that are on the spoke model instance are (all should be set through spokeInit()):
 			spokeInit()
 				@param name: Name					required: No	type: string	The display Name on the front end, defaults to modelName.
-				@param name: NameProperty			required: No	type: string	The Name of each instance (can be a composite property or a calculated property), defaults to 'name', errors if no name property.
+				@param name: nameProperty			required: No	type: string	The Name of each instance (can be a composite property or a calculated property), defaults to 'name', errors if no name property.
 				@param name: istype					required: No	type: string	If this is true we treat this model as a type, defaults to false
-				@param name: DescProperty			required: No	type: string	The Description of each instance (can be a composite property or a calculated property), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
+				@param name: descriptionProperty			required: No	type: string	The Description of each instance (can be a composite property or a calculated property), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
 				@param name: HiddenFields			required: No	type: string	A list of property names that should NOT be displayed on the front end form, these override the propertyorder setting.
 				@param name: PropertyOrder			required: No	type: string	An comma delimeted list of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
 				@param name: invisibleProperties	required: No	type: string	A list of property names that will be passed as _invis, these can be edited on the front end in custom includes and will be saved
@@ -58,7 +62,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				@param name: listRoute				required: No	type: string	a set of params as in urlFor() used for when you do not wish to show a list of this model in SpokeDM, will create a link that will load it in another window.
 				@param name: customFormRoute		required: No	type: string	a set of params as in urlFor() that points to a partial, the partial will be loaded at the bottom of the form
 		
-		NOTE: for NameProperty and DescProperty if you use a composite/calculated property include the table name!
+		NOTE: for nameProperty and descriptionProperty if you use a composite/calculated property include the table name!
 	--->
 	
 	<!---
@@ -97,7 +101,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfargument name="name" required="false" type="string" hint="The display Name on the front end, defaults to modelName">
 		<cfargument name="istype" required="false" type="boolean" hint="If this is true we treat this model as a type, defaults to false">
 		<cfargument name="nameProperty" required="false" type="string" hint="The Name of each instance (can be a composite property or a calculated property), defaults to 'name'">
-		<cfargument name="DescProperty" required="false" type="string" hint="The Description of each instance (can be a composite property or a calculated property), defaults to ''">
+		<cfargument name="descriptionProperty" required="false" type="string" hint="The Description of each instance (can be a composite property or a calculated property), defaults to ''">
 		<cfargument name="PropertyOrder" required="false" type="string" hint="An comma delimeted list of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order">
 		<cfargument name="HiddenFields" required="false" type="string" default="createdat,deletedat,updatedat" hint="An list of property names that should NOT be displayed on the front end form.">
 		<cfargument name="invisibleProperties" required="false" type="string" hint="A list of property names that will be passed as _invis, these can be edited on the front end in custom includes and will be saved">
@@ -113,7 +117,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			if(StructKeyExists(arguments, "name")) variables.wheels.class.spokesettings.name = arguments.name;
 			if(StructKeyExists(arguments, "istype")) variables.wheels.class.spokesettings.istype = arguments.istype;
 			if(StructKeyExists(arguments, "nameProperty")) variables.wheels.class.spokesettings.nameProperty = arguments.nameProperty;
-			if(StructKeyExists(arguments, "DescProperty")) variables.wheels.class.spokesettings.DescProperty = arguments.DescProperty;
+			if(StructKeyExists(arguments, "descriptionProperty")) variables.wheels.class.spokesettings.descriptionProperty = arguments.descriptionProperty;
 			if(StructKeyExists(arguments, "PropertyOrder")) variables.wheels.class.spokesettings.PropertyOrder = ListToArray(arguments.PropertyOrder);
 			if(StructKeyExists(arguments, "invisibleProperties")) variables.wheels.class.spokesettings.invisibleProperties = ListToArray(arguments.invisibleProperties);
 			variables.wheels.class.spokesettings.HiddenFields = arguments.HiddenFields;
@@ -182,7 +186,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			//create the date objects to save
 			var changedProps = ListToArray(this.changedProperties());
 			for(var key in changedProps)
-				if(StructKeyExists(this, key)){
+				if(StructKeyExists(this, key) && !isArray(this[key]) && !isStruct(this[key])){
 					this[key] = Trim(this[key]);
 					if(Len(this[key])){//check if value exists - if not we don't need to process it
 						var propType = $spokePropertyType(key);
@@ -193,7 +197,9 @@ If not, see <http://www.gnu.org/licenses/>.
 							if(proptype == "time") formatter.init(REReplaceNoCase(APPLICATION.spokeTimeFormat, 'tt', 'a', 'ALL'));
 							else if(proptype == "date") formatter.init(APPLICATION.spokeDateFormat);
 							else formatter.init(APPLICATION.spokeDateFormat & " " & REReplaceNoCase(APPLICATION.spokeTimeFormat, 'tt', 'a', 'ALL'));
-							this[key] = formatter.parse(this[key]);
+							try{
+								this[key] = formatter.parse(this[key]);
+							}catch(any){}
 						}
 					}
 				}
@@ -283,6 +289,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			return {
 				"name": this.spokeDisplayName(),
 				"listing": this.spokeList(),//use listing so we don't conflict with the list function in the javascript
+				"editor": this.spokeExternalEditorURL(),
 				"permissions": modelPerms,
 				"errors": []
 			};
@@ -397,8 +404,9 @@ If not, see <http://www.gnu.org/licenses/>.
 					else if(propFormat == "datetime") results[property] = Trim('#DateFormat(this.$spokeValue(property), APPLICATION.spokeDateFormat)# #TimeFormat(this.$spokeValue(property), APPLICATION.spokeTimeFormat)#');
 					else if(propFormat == "date") results[property] = Trim('#DateFormat(this.$spokeValue(property), APPLICATION.spokeDateFormat)#');
 					else if(propFormat == "time") results[property] = Trim('#TimeFormat(this.$spokeValue(property), APPLICATION.spokeTimeFormat)#');
-					else if(propFormat == "integer" || propFormat.type == "float") results[property] = this.$spokeValue(property);
-					else results[property] = Trim(this.$spokeValue(property));
+					else if(propFormat == "integer" || propFormat == "float") results[property] = this.$spokeValue(property);
+					else if(propFormat == "string") results[property] = Trim(this.$spokeValue(property));
+					else results[property] = this.$spokeValue(property);
 				}
 			}
 			return results;
@@ -424,6 +432,7 @@ If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			var results = {};
+			//add all types to the results struct
 			if(Len(types)){//load and deal with types if there were any
 				types = ListToArray(Right(types, Len(types) - 1));//remove leading comma
 				for(var i = 1; i <= ArrayLen(types); i++){
@@ -447,20 +456,22 @@ If not, see <http://www.gnu.org/licenses/>.
 						};
 				}
 			}
+			//add all properties to the results struct
 			properties = ListToArray(properties);
 			for(var i = 1; i <= ArrayLen(properties); i++){
 				if(StructKeyExists(variables.wheels.class.properties, properties[i]) && variables.wheels.class.properties[properties[i]].validationType == "binary") continue;//ignore binary for now
 				results[properties[i]] = $spokeProperty(properties[i]);
-				if(results[properties[i]].type == "boolean") results[properties[i]].value = ((this.$spokeValue(properties[i]) == "")?false:((this.$spokeValue(properties[i]))?true:false));//force bits, yes/no etc to be true false values to work with angularjs checkbox settings
+				if(results[properties[i]].type == "boolean") results[properties[i]]["value"] = ((this.$spokeValue(properties[i]) == "")?false:((this.$spokeValue(properties[i]))?true:false));//force bits, yes/no etc to be true false values to work with angularjs checkbox settings
 				else if(results[properties[i]].type == "datetime") results[properties[i]]["value"] = Trim('#DateFormat(this.$spokeValue(properties[i]), APPLICATION.spokeDateFormat)# #TimeFormat(this.$spokeValue(properties[i]), APPLICATION.spokeTimeFormat)#');
 				else if(results[properties[i]].type == "date") results[properties[i]]["value"] = Trim('#DateFormat(this.$spokeValue(properties[i]), APPLICATION.spokeDateFormat)#');
 				else if(results[properties[i]].type == "time") results[properties[i]]["value"] = Trim('#TimeFormat(this.$spokeValue(properties[i]), APPLICATION.spokeTimeFormat)#');
 				else if(results[properties[i]].type == "integer" || results[properties[i]].type == "float") results[properties[i]]["value"] = this.$spokeValue(properties[i]);
-				else{
+				else if(results[properties[i]].type == "string"){
 					results[properties[i]]["value"] = Trim(this.$spokeValue(properties[i]));
 					if(StructKeyExists(variables.wheels.class.mapping, properties[i]) && StructKeyExists(variables.wheels.class.mapping[properties[i]], "spokeSanitize")) results[properties[i]]["value"] = Trim($unsanitize(results[properties[i]]["value"]));
-				}
+				}else results[properties[i]]["value"] = this.$spokeValue(properties[i]);
 			}
+			//filter and order the results struct
 			var returnArray = [];
 			for(var i = 1; i <= ArrayLen(workingPropertyOrder); i++) if(StructKeyExists(results, workingPropertyOrder[i])) ArrayAppend(returnArray, results[workingPropertyOrder[i]]);
 			return returnArray;
@@ -507,7 +518,11 @@ If not, see <http://www.gnu.org/licenses/>.
 						}else //onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
 							returnStruct["data"] = $spokeQueryToStructs(this.onMissingMethod(
 								missingMethodName = variables.wheels.class.associations[key].shortcut,
-								missingMethodArguments = shortcutModel.$spokeFindAllGenerator()
+								missingMethodArguments = shortcutModel.$spokeFindAllGenerator(argumentCollection =
+									(StructKeyExists(variables.wheels.class.associations[key], "spokeBeforeList") && variables.wheels.class.associations[key].spokeBeforeList != "")?
+										$invoke(method=variables.wheels.class.associations[key].spokeBeforeList, invokeArgs={})
+										:{}
+									)
 							));
 					}else{
 						//setup
@@ -528,7 +543,14 @@ If not, see <http://www.gnu.org/licenses/>.
 							returnStruct["listing"] = childModel.spokeExternalListURL();
 							returnStruct["data"] = [{"name": "Click to view...", "description": ""}];
 						}else //onMissingMethod quite happily handles all the different types of calls we need - for example a hasMany called people will call in essence model.people()
-							returnStruct["data"] = $spokeQueryToStructs(this.onMissingMethod(missingMethodName = key, missingMethodArguments = childModel.$spokeFindAllGenerator()));
+							returnStruct["data"] = $spokeQueryToStructs(this.onMissingMethod(
+								missingMethodName = key,
+								missingMethodArguments = childModel.$spokeFindAllGenerator(
+									argumentCollection =
+										(StructKeyExists(variables.wheels.class.associations[key], "spokeBeforeList") && variables.wheels.class.associations[key].spokeBeforeList != "")?
+											$invoke(method=variables.wheels.class.associations[key].spokeBeforeList, invokeArgs={})
+											:{}
+								)));
 					}
 					
 					if(StructKeyExists(arguments, "childrenOnly")) ArrayAppend(result, returnStruct);
@@ -562,12 +584,12 @@ If not, see <http://www.gnu.org/licenses/>.
 			SELECT * FROM cachedquery
 			WHERE false
 			<cfif 
-				(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameProperty))
-				OR StructKeyExists(variables.wheels.class.spokesettings, "NameProperty")
+				(StructKeyExists(variables.wheels.class.spokesettings, "nameProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.nameProperty))
+				OR StructKeyExists(variables.wheels.class.spokesettings, "nameProperty")
 				OR ListContainsNoCase(this.propertyNames(), "name")>
 				OR name LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
 			</cfif>
-			<cfif StructKeyExists(variables.wheels.class.spokesettings, "DescProperty") || Len(StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes")) || Len(ArrayFindOneOf(this.columns(), "description,desc,note,notes"))>
+			<cfif StructKeyExists(variables.wheels.class.spokesettings, "descriptionProperty") || Len(StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes")) || Len(ArrayFindOneOf(this.columns(), "description,desc,note,notes"))>
 				OR description LIKE <cfqueryparam CFSQLType="CF_SQL_VARCHAR" value="%#arguments.searchValue#%">
 			</cfif>
 			<cfif StructKeyExists(variables.wheels.class.spokesettings, "searchProperties") && Len(variables.wheels.class.spokesettings.searchProperties)>
@@ -591,14 +613,17 @@ If not, see <http://www.gnu.org/licenses/>.
 			if(StructKeyExists(variables.wheels.class.mapping, arguments.property)){
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokeoptions") && isArray(variables.wheels.class.mapping[arguments.property].spokeoptions)) type = "dropdown";
 				else if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spoketype") && variables.wheels.class.mapping[arguments.property].spoketype != "dropdown") type = variables.wheels.class.mapping[arguments.property].spoketype;
+				else if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "sql")) type = "display";
 			//calculate from 
-			}else if(StructKeyExists(variables.wheels.class.properties, arguments.property)){
-				//generate defaults
-				if(variables.wheels.class.properties[arguments.property].type == "CF_SQL_DATE") type = "date";
-				else if(variables.wheels.class.properties[arguments.property].type == "CF_SQL_TIME") type = "time";
-				else type = variables.wheels.class.properties[arguments.property].validationType;
-			}else if(StructKeyExists(variables.wheels.class.calculatedProperties, arguments.property)) type = "display";
-			
+			}
+			if(type == "string"){
+				if(StructKeyExists(variables.wheels.class.properties, arguments.property)){
+					//generate defaults
+					if(variables.wheels.class.properties[arguments.property].type == "CF_SQL_DATE") type = "date";
+					else if(variables.wheels.class.properties[arguments.property].type == "CF_SQL_TIME") type = "time";
+					else type = variables.wheels.class.properties[arguments.property].validationType;
+				}else if(StructKeyExists(variables.wheels.class.calculatedProperties, arguments.property)) type = "display";
+			}
 			return type;
 		</cfscript>
 	</cffunction>
@@ -615,7 +640,7 @@ If not, see <http://www.gnu.org/licenses/>.
 					:
 						arguments.property),
 				"type": "display",
-				"description": (StructKeyExists(variables.wheels.class.mapping, arguments.property) && StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokedesc"))?variables.wheels.class.mapping[arguments.property].spokedesc:"",
+				"description": (StructKeyExists(variables.wheels.class.mapping, arguments.property) && StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokedescription"))?variables.wheels.class.mapping[arguments.property].spokedescription:"",
 				"name": (arguments.property == this.primarykey())?"key":arguments.property,
 				"required": false
 			};
@@ -624,6 +649,7 @@ If not, see <http://www.gnu.org/licenses/>.
 			//set types and inherently anything we need off the class.properties struct
 			//types are: display, integer, string, datetime, boolean, float, binary, array(display only), struct(display only)
 			if(StructKeyExists(variables.wheels.class.properties, arguments.property)) result["required"] = variables.wheels.class.properties[arguments.property].nullable == "NO";//enforce boolean representation of required based on nullable database value - please note that if a boolean field is required it must be checked...
+			else result["required"] = false;
 			
 			//spoke settings set through property call
 			if(StructKeyExists(variables.wheels.class.mapping, arguments.property)){
@@ -633,7 +659,8 @@ If not, see <http://www.gnu.org/licenses/>.
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokeoptions") && isArray(variables.wheels.class.mapping[arguments.property].spokeoptions)) result["listing"] = variables.wheels.class.mapping[arguments.property].spokeoptions;
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokeplaceholder")) result["placeholder"] = variables.wheels.class.mapping[arguments.property].spokeplaceholder;
 				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spoketip")) result["tip"] = variables.wheels.class.mapping[arguments.property].spoketip;
-				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokedesc")) result["description"] = variables.wheels.class.mapping[arguments.property].spokedesc;
+				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokedescription")) result["description"] = variables.wheels.class.mapping[arguments.property].spokedescription;
+				if(StructKeyExists(variables.wheels.class.mapping[arguments.property], "spokerequired") && !result["required"]) result["required"] = variables.wheels.class.mapping[arguments.property].spokerequired;//do not override nullable == "NO"
 			}
 			result["name"] = (arguments.property == this.primarykey())?"key":arguments.property;
 			return result;
@@ -654,16 +681,16 @@ If not, see <http://www.gnu.org/licenses/>.
 			}
 			arguments["select"] = "#this.tableName()#.#this.primaryKey()# as 'key'";//note that spoke cannot work with composite keys ATM
 			//calculate name property
-			if(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.NameProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.NameProperty].sql#) as name";
-			else if(StructKeyExists(variables.wheels.class.spokesettings, "NameProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.NameProperty#) as name";
+			if(StructKeyExists(variables.wheels.class.spokesettings, "nameProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.nameProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.nameProperty].sql#) as name";
+			else if(StructKeyExists(variables.wheels.class.spokesettings, "nameProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.nameProperty#) as name";
 			else if(StructKeyExists(variables.wheels.class.calculatedProperties, "name")) arguments.select &= ",(#variables.wheels.class.calculatedProperties.name.sql#) as name";
 			else if(ArrayFindNoCase(this.columns(), "name")) arguments.select &= ",#this.tableName()#.name";
 			else throw(type="spokeModelException", message="There was no suitable Name field on the model ""#this.spokeModelName()#"", try setting it manually in spokeInit(). Spoke Settings: #StructKeyList(variables.wheels.class.spokesettings)#");
 			
 			//calculate description property, if not, set to blank
-			if(StructKeyExists(variables.wheels.class.spokesettings, "DescProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.DescProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.DescProperty].sql#) as description";
-			else if(StructKeyExists(variables.wheels.class.spokesettings, "DescProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.DescProperty#) as description";
-			else{
+			if(StructKeyExists(variables.wheels.class.spokesettings, "descriptionProperty") && StructKeyExists(variables.wheels.class.calculatedProperties, variables.wheels.class.spokesettings.descriptionProperty)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[variables.wheels.class.spokesettings.descriptionProperty].sql#) as description";
+			else if(StructKeyExists(variables.wheels.class.spokesettings, "descriptionProperty")) arguments.select &= ",(#variables.wheels.class.spokesettings.descriptionProperty#) as description";
+			else{//attempt to automatically set the description
 				var calcName = StructFindOneOf(variables.wheels.class.calculatedProperties, "description,desc,note,notes");
 				if(Len(calcName)) arguments.select &= ",(#variables.wheels.class.calculatedProperties[calcName].sql#) as description";
 				else{
@@ -672,7 +699,14 @@ If not, see <http://www.gnu.org/licenses/>.
 					else arguments.select &= ",'' as description";
 				}
 			}
-			if(StructKeyExists(variables.wheels.class.spokesettings, "searchProperties") && Len(variables.wheels.class.spokesettings.searchProperties)) arguments.select &= "," & variables.wheels.class.spokesettings.searchProperties;
+			if(StructKeyExists(variables.wheels.class.spokesettings, "searchProperties") && Len(variables.wheels.class.spokesettings.searchProperties)){
+				var searchArray = ListToArray(variables.wheels.class.spokesettings.searchProperties);
+				for(var i = 1; i <= ArrayLen(searchArray); i++){
+					if(StructKeyExists(variables.wheels.class.calculatedProperties, searchArray[i])) arguments.select &= ",(#variables.wheels.class.calculatedProperties[searchArray[i]].sql#) as #searchArray[i]#";
+					else if(ArrayFindNoCase(this.columns(), searchArray[i])) arguments.select &= ",#this.tableName()#.#searchArray[i]#";
+					else throw(type="spokeModelException", message="The searchProperty #searchArray[i]# does not exist on the model ""#this.spokeModelName()#"". Spoke Settings: #StructKeyList(variables.wheels.class.spokesettings)#");
+				}
+			}
 			variables.wheels.class.spokesettings.$selectSQL = arguments.select;
 			return arguments;
 		</cfscript>
@@ -765,6 +799,36 @@ If not, see <http://www.gnu.org/licenses/>.
 		</cfscript>
 	</cffunction>
 	
+	<cffunction name="spokeAttemptModel" access="public" returnType="any" output="false" hint="attempts to load the passed model, failing gracefully">
+		<cfargument name="modelname" required="true" type="string">
+		<cfscript>
+			try{
+				return model(singularize(arguments.modelname));
+			}catch(any){
+				return false;
+			}
+		</cfscript>
+	</cffunction>
+	
+	<cffunction name="spokeAttemptFindByKey" access="public" returnType="any" output="false" hint="attempts to findByKey on the passed arguments, failing gracefully">
+		<cfargument name="key" type="any" required="true" hint="Primary key value(s) of the record to fetch. Separate with comma if passing in multiple primary key values. Accepts a string, list, or a numeric value.">
+		<cfargument name="select" type="string" required="false" default="" hint="See documentation for @findAll.">
+		<cfargument name="include" type="string" required="false" default="" hint="See documentation for @findAll.">
+		<cfargument name="cache" type="any" required="false" default="" hint="See documentation for @findAll.">
+		<cfargument name="reload" type="boolean" required="false" hint="See documentation for @findAll.">
+		<cfargument name="parameterize" type="any" required="false" hint="See documentation for @findAll.">
+		<cfargument name="returnAs" type="string" required="false" hint="See documentation for @findOne.">
+		<cfargument name="callbacks" type="boolean" required="false" default="true" hint="See documentation for @save.">
+		<cfargument name="includeSoftDeletes" type="boolean" required="false" default="false" hint="See documentation for @findAll.">
+		<cfscript>
+			try{
+				return this.findByKey(argumentCollection=arguments);
+			}catch(any){
+				return false;
+			}
+		</cfscript>
+	</cffunction>
+	
 	<!--- overriding some cfwheels functions to add functionality --->
 	
 	<cffunction name="property" returntype="void" access="public" output="false" hint="Use this method to map an object property to either a table column with a different name than the property or to a SQL expression. You only need to use this method when you want to override the default object relational mapping that Wheels performs."
@@ -792,7 +856,9 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfargument name="spokeType" required="false" type="string" hint="A string that overrides the type set in the database, can be one of; display, integer, string, datetime, date, time, boolean, float, binary, dropdown. NOTE: that binary is currently not supported as a display unless you implement it in the formBase.cfm. the dropdown option must also have the spokeOptions setting included.">
 		<cfargument name="spokeOptions" required="false" type="array" hint="an array of strings/{key, name} that function as the options for a dropdown, or an array of {key, name} structs">
 		<cfargument name="spokePlaceholder" required="false" type="string" hint="A string that is displayed as the placeholder on the form.">
-		<cfargument name="spokeTip" required="false" type="string" hint="A string that is displayed next to the label as a tip on the form.">
+		<cfargument name="spokeTip" required="false" type="string" hint="A string that is displayed as a tooltip on the input.">
+		<cfargument name="spokeDescription" required="false" type="string" hint="A string that is displayed next to the label as a tip on the form.">
+		<cfargument name="spokeRequired" required="false" type="boolean" hint="Manually sets the required value - cannot be unrequired if the column cannot be set to null.">
 		<cfargument name="spokeSanitize" required="false" type="boolean" hint="If this is true then the value will be stored in the DB via HTMLEditFormat and unSanitized when editing, use this for fields which are also used in a display or description field">
 		<cfscript>
 			// validate setup
@@ -834,7 +900,8 @@ If not, see <http://www.gnu.org/licenses/>.
 			if(StructKeyExists(arguments, "spoketype")) variables.wheels.class.mapping[arguments.name].spoketype = arguments.spoketype;
 			if(StructKeyExists(arguments, "spokeplaceholder")) variables.wheels.class.mapping[arguments.name].spokeplaceholder = arguments.spokeplaceholder;
 			if(StructKeyExists(arguments, "spoketip")) variables.wheels.class.mapping[arguments.name].spoketip = arguments.spoketip;
-			if(StructKeyExists(arguments, "spokedesc")) variables.wheels.class.mapping[arguments.name].spokedesc = arguments.spokedesc;
+			if(StructKeyExists(arguments, "spokedescription")) variables.wheels.class.mapping[arguments.name].spokedescription = arguments.spokedescription;
+			if(StructKeyExists(arguments, "spokerequired")) variables.wheels.class.mapping[arguments.name].spokerequired = arguments.spokerequired;
 			if(StructKeyExists(arguments, "spokesanitize")) variables.wheels.class.mapping[arguments.name].spokesanitize = arguments.spokesanitize;
 		</cfscript>
 	</cffunction>
@@ -855,7 +922,7 @@ If not, see <http://www.gnu.org/licenses/>.
 		<cfscript>
 			return {
 				"name": "Test Screen",//each property contains {name, label, value, type[, list(for dropdown types)][, placeholder][, required][, tip]}
-				"properties": [//display, integer, string, datetime, date, time, boolean, float, binary(unsupported), array(display only), struct(display only), dropdown, text, email, website, password
+				"properties": [//display, integer, string, datetime, date, time, boolean, float, binary(unsupported), array(display only), struct(display only), dropdown, text, email, url, password
 					{
 						"name": "display",
 						"label": "Display",
@@ -962,7 +1029,7 @@ line but not sure how well that works.",
 						"name": "website",
 						"label": "Website",
 						"value": "http://www.test.com",
-						"type": "website",
+						"type": "url",
 						"required": arguments.required,
 						"placeholder": "Website Placeholder",
 						"tip": "Website Tip"

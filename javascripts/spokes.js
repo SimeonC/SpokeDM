@@ -228,8 +228,8 @@ If not, see <http://www.gnu.org/licenses/>.
           if (json.key != null) {
             _this.key = json.key;
           }
-          return typeof cb === "function" ? cb(json) : void 0;
         }
+        return typeof cb === "function" ? cb(json) : void 0;
       });
     };
     DataSpoke.prototype["delete"] = function(cb) {
@@ -280,8 +280,8 @@ If not, see <http://www.gnu.org/licenses/>.
             _this.listing[i]._originalproperties = [];
             _this.listing[i]._originalproperties = angular.copy(_this.listing[i].properties);
           }
-          return typeof cb === "function" ? cb(json) : void 0;
         }
+        return typeof cb === "function" ? cb(json) : void 0;
       });
     };
     return DataSpoke;
@@ -322,6 +322,7 @@ If not, see <http://www.gnu.org/licenses/>.
       $scope.$on("$routeChangeSuccess", function() {
         $scope.geterrors = [];
         $scope.geterrorsplash = false;
+        $scope.clearAlerts();
         if ($routeParams.key === 'new' && ($scope.spoke.modelkey != null) && ($scope.spoke.key != null)) {
           $scope.spoke.newmodelkey = $routeParams.modelkey;
           if (($scope.spoke.modelkey != null) && ($scope.spoke.key != null) && ($routeParams.modelkey != null) && ($routeParams.key != null)) {
@@ -781,8 +782,10 @@ If not, see <http://www.gnu.org/licenses/>.
         return $scope.edittype.list({
           modelkey: typename,
           list: true
-        }, function() {
-          return $('#typeEditModal').modal('show');
+        }, function(json) {
+          if (!(json.errors != null) || json.errors.length === 0) {
+            return $('#typeEditModal').modal('show');
+          }
         });
       };
       $scope.newEditType = function() {

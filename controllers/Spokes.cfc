@@ -69,54 +69,56 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="dataajax">
 		<cfscript>
+			var loc = {};
 			params.format = 'json';//this function will ALWAYS be called via ajax and should Always return json.
 			if(!spokeCheckLogin()){//see base controller
 				return renderWith({"loginerror":"You have been logged out."});
 			}
 			if(StructKeyExists(params, "modelkey") && params.modelkey == "test") return renderWith(CreateObject("component","/models/Spokemodel").spokeTestDisplayProperties(argumentCollection=params));
-			if(StructKeyExists(params, "modelkey") && StructKeyExists(params, "list") && params.list) return renderWith(model(params.modelkey).spokeTypeLoad());
 			if(!StructKeyExists(params, "modelkey") || (!StructKeyExists(params, "key") && request.cgi.request_method != "GET")) return renderWith({"errors": [{"message": "ERROR!! Cannot compute invalid values, please try again..."}]});
-			var model = model(params.modelkey);
-			var item = false;
-			var modelPerms = model.modelPermissions();
+			loc.model = CreateObject("component","/models/Spokemodel").spokeAttemptModel(params.modelkey);
+			if(!isStruct(loc.model)) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
+			if(StructKeyExists(params, "list") && params.list) return renderWith(loc.model.spokeTypeLoad());
+			loc.item = false;
+			loc.modelPerms = loc.model.modelPermissions();
 			if(request.cgi.request_method == "POST"){
-				var req = toString(getHttpRequestData().content);	
-				if (isJSON(req)) StructAppend(params, deserializeJSON(req), true);
+				loc.req = toString(getHttpRequestData().content);	
+				if (isJSON(loc.req)) StructAppend(params, deserializeJSON(loc.req), true);
 				if(params.key == 'new'){
-					if(modelPerms < 3) return renderWith({'errors': [{"message": "You do not have permissions to create a new #model.displayName()#"}]});
-					item = model.create(params.data);
+					if(loc.modelPerms < 3) return renderWith({'errors': [{"message": "You do not have permissions to create a new #model.displayName()#"}]});
+					loc.item = loc.model.create(params.data);
 				}else{
-					item = model.findByKey(params.key);
-					if(isStruct(item)){
-						if(Min(item.instPermissions(), modelPerms) < 2) return renderWith({'errors': [{"message": "You do not have permissions to save this #model.displayName()#"}]});
-						item.setProperties(params.origdata);
-						if(!item.valid()) return renderWith({'errors': item.allErrors()});
-						if(!(StructKeyExists(params, "dirtyforce") && params.dirtyforce) && item.hasChanged()) return renderWith({"dirtywarnings": item.allChanges()});
-						item.update(params.data);
+					loc.item = loc.model.spokeAttemptFindByKey(params.key);
+					if(isStruct(loc.item)){
+						if(Min(loc.item.instPermissions(), loc.modelPerms) < 2) return renderWith({'errors': [{"message": "You do not have permissions to save this #loc.model.displayName()#"}]});
+						loc.item.setProperties(params.origdata);
+						if(!loc.item.valid()) return renderWith({'errors': loc.item.allErrors()});
+						if(!(StructKeyExists(params, "dirtyforce") && params.dirtyforce) && loc.item.hasChanged()) return renderWith({"dirtywarnings": loc.item.allChanges()});
+						loc.item.update(params.data);
 					}
 					else return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
 				}
-				return renderWith({'errors': item.allErrors(), 'key': item.key()});
+				return renderWith({'errors': loc.item.allErrors(), 'key': loc.item.key()});
 			}else if(request.cgi.request_method == "GET"){
-				if(modelPerms <= 0) return renderWith({"errors": [{"message": "Maybe you wanted the other moon? (You can't view this)"}]});
-				if(!StructKeyExists(params, "key") || params.key == 'list') return renderWith(model.spokeListLoad());
-				if(params.key == 'new') return renderWith(model.spokeNew());
-				else item = model.findByKey(params.key);
-				var perms = 0;
-				if(!isStruct(item) || (perms = Min(modelPerms, item.instPermissions())) <= 0) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
+				if(loc.modelPerms <= 0) return renderWith({"errors": [{"message": "Maybe you wanted the other moon? (You can't view this)"}]});
+				if(!StructKeyExists(params, "key") || params.key == 'list') return renderWith(loc.model.spokeListLoad());
+				if(params.key == 'new') return renderWith(loc.model.spokeNew());
+				else loc.item = loc.model.spokeAttemptFindByKey(params.key);
+				loc.perms = 0;
+				if(!isStruct(loc.item) || (loc.perms = Min(loc.modelPerms, loc.item.instPermissions())) <= 0) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
 				if(StructKeyExists(params, "delete") && params.delete){
-					if(perms < 4) return renderWith({'errors': [{"message": "You do not have permissions to delete this #model.displayName()#"}]});
+					if(loc.perms < 4) return renderWith({'errors': [{"message": "You do not have permissions to delete this #loc.model.displayName()#"}]});
 					try{
-						item.delete();
-						return renderWith({'errors': item.allErrors()});
+						loc.item.delete();
+						return renderWith({'errors': loc.item.allErrors()});
 					}catch(any e){
-						return renderWith({'errors': [{"message": "An error occured deleting the #model.spokeDisplayName(false)# object, try removing all child objects first."}]});	
+						return renderWith({'errors': [{"message": "An error occured deleting the #loc.model.spokeDisplayName(false)# object, try removing all child objects first."}]});	
 					}
 				}
-				if(StructKeyExists(params, "newkey")) return renderWith(item.spokeNew(params.newkey));
+				if(StructKeyExists(params, "newkey")) return renderWith(loc.item.spokeNew(params.newkey));
 			}
 			//default is to return the GET data
-			return renderWith(item.spokeDataLoad());
+			return renderWith(loc.item.spokeDataLoad());
 		</cfscript>
 	</cffunction>
 	

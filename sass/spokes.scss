@@ -38,8 +38,15 @@ span.icon-asterisk.required {
 	color: #ee5f5b;
 }
 
-html,body{
+html{
 	height: 100%;
+}
+body{
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	bottom: 0;
 }
 
 [ng-click]{
@@ -48,7 +55,10 @@ html,body{
 
 div.spoke-viewport{
 	min-height: 100%;
-	position: relative;
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
 	
 	div.row-fluid{
 		&.spoke-header,&.spoke-footer{
@@ -188,8 +198,9 @@ div.spoke-viewport{
 			}
 		}
 		&.spoke-content{
-			padding-top: $header-height;
-			padding-bottom: $footer-height;
+			margin-top: $header-height;
+			padding-top: 25px;
+			margin-bottom: $footer-height;
 		}
 		&.spoke-footer{
 			height: $footer-height;

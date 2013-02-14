@@ -53,9 +53,9 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 	Every model extends Spokemodel instead of Model.
 	In the init function a call to spokeInit() must be made, it is important that this is called before all callback, property and associations calls. spokeInit() takes the following parameters:
 		@param name: Name					required: No	type: string	The display Name on the front end, defaults to modelName.
-		@param name: NameProperty			required: No	type: string	The Name of each instance (can be a composite property or a calculated property), defaults to 'name', errors if no name property.
+		@param name: nameProperty			required: No	type: string	The Name of each instance (can be a composite property or a calculated property), defaults to 'name', errors if no name property.
 		@param name: istype					required: No	type: string	If this is true we treat this model as a type, defaults to false
-		@param name: DescProperty			required: No	type: string	The Description of each instance (can be a composite property or a calculated property), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
+		@param name: descriptionProperty			required: No	type: string	The Description of each instance (can be a composite property or a calculated property), attempts to default to one of (in order): "description,desc,note,notes" otherwise defaults to ''
 		@param name: HiddenFields			required: No	type: string	A list of property names that should NOT be displayed on the front end form, these override the propertyorder setting.
 		@param name: PropertyOrder			required: No	type: string	An comma delimeted list of property names, the order is the order they appear on the form, if they are omitted from this list then they are not shown - defaults to the database order
 		@param name: invisibleProperties	required: No	type: string	A list of property names that will be passed as _invis, these can be edited on the front end in custom includes and will be saved

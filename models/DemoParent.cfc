@@ -22,9 +22,9 @@ If not, see <http://www.gnu.org/licenses/>.
 			belongsTo(name="demotype", spoketype=true);
 			hasMany(name="demochilds");//note that if the table was 'child' not 'demochild' we would define it as 'demochildren'
 			
-			property(name="name", sql="CONCAT(name1, ' ', name2)", spokeDesc="Name1 and Name2 concatenated into one display field.");//mysql
-			//property(name="name", sql="name1 + ' ' + name2", spokeDesc="Name1 and Name2 concatenated into one display field.");//mssql
-			//property(name="name", sql="name1||' '||name2", spokeDesc="Name1 and Name2 concatenated into one display field.");//PostgresSQL, H2 and Oracle
+			property(name="name", sql="CONCAT(name1, ' ', name2)", spokeDescription="Name1 and Name2 concatenated into one display field.");//mysql
+			//property(name="name", sql="name1 + ' ' + name2", spokeDescription="Name1 and Name2 concatenated into one display field.");//mssql
+			//property(name="name", sql="name1||' '||name2", spokeDescription="Name1 and Name2 concatenated into one display field.");//PostgresSQL, H2 and Oracle
 		</cfscript>
 	</cffunction>
 	

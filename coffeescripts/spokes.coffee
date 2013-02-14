@@ -123,7 +123,7 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 				DataCache.save @modelkey, @key, ''#evaluates to false so we reload the object next get process
 			
 				if json.key? then @key = json.key
-				cb? json
+			cb? json
 	DataSpoke::delete = (cb) ->
 		return DataSpoke.delete {modelkey: modelkey, key: @key}, (json) =>
 			if json.loginerror?
@@ -149,7 +149,7 @@ module.factory 'DataSpoke', ($resource, $rootScope, DataCache) ->
 									break
 					@listing[i]._originalproperties = []
 					@listing[i]._originalproperties = angular.copy @listing[i].properties #properties is an array of objects - to maintain an ordering
-				cb? json
+			cb? json
 	return DataSpoke
 
 module.config ($routeProvider, $locationProvider) ->
@@ -178,6 +178,7 @@ class SpokeMain
 		$scope.$on "$routeChangeSuccess", () ->
 			$scope.geterrors = []
 			$scope.geterrorsplash = false
+			$scope.clearAlerts()
 			if $routeParams.key is 'new' and $scope.spoke.modelkey? and $scope.spoke.key?
 				$scope.spoke.newmodelkey = $routeParams.modelkey
 				if $scope.spoke.modelkey? and $scope.spoke.key? and $routeParams.modelkey? and $routeParams.key? then $scope.spoke.get (json) ->
@@ -434,8 +435,7 @@ class SpokeMain
 			$scope.typealert = ''
 			$scope.edittype = new DataSpoke()
 			$scope.edittype.modelkey = typename
-			$scope.edittype.list {modelkey: typename, list: true}, () ->
-				$('#typeEditModal').modal 'show'
+			$scope.edittype.list {modelkey: typename, list: true}, (json) -> if not json.errors? or json.errors.length is 0 then $('#typeEditModal').modal 'show'
 		$scope.newEditType = ->
 			$scope.typealert = ''
 			data = {key: 'new', properties: []}
