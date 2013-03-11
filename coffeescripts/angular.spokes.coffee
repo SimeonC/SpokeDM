@@ -17,15 +17,28 @@ If not, see <http://www.gnu.org/licenses/>.
 
 module = angular.module 'SpokeUtilities', []
 
+#wrapper for jqsticky; see http://stickyjs.com/
+module.directive 'spSticky', ($timeout) ->
+	restrict: 'A'
+	link: ($scope, $element, $attrs, $controller) ->
+		$timeout ->
+			$element.sticky
+				topSpacing: $attrs.topSpacing #Pixels between the page top and the element's top.
+				bottomSpacing: $attrs.bottomSpacing #Pixels between the page bottom and the element's bottom.
+				className: $attrs.className #CSS class added to the element and its wrapper when "sticked".
+				wrapperClassName: $attrs.wrapperClassName #CSS class added to the wrapper.
+				getWidthFrom: $attrs.getWidthFrom #Selector of element referenced to set fixed width of "sticky" element.
+		, 10 #need to wait until the containing element actually has a proper width...
+
 #wrapper for bootstrap-datetimepicker http://tarruda.github.com/bootstrap-datetimepicker/
 module.directive 'bsDatetimepicker', ($timeout) ->
 	restrict: 'A'
 	require: '?ngModel'
 	link: ($scope, $element, $attrs, controller) ->
-		$scope.options = if $attrs.bsDatetimepicker then $scope.$parent.$eval $attrs.bsDatetimepicker else {}
-		if not $scope.options.language? then $scope.options.language = 'en'
-		if not $scope.options.pick12HourFormat? then $scope.options.pick12HourFormat = true
-		$timeout (-> $element.parent().datetimepicker($scope.options)), 0
+		options = if $attrs.bsDatetimepicker then $scope.$parent.$eval $attrs.bsDatetimepicker else {}
+		if not options.language? then options.language = 'en'
+		if not options.pick12HourFormat? then options.pick12HourFormat = true
+		$timeout (-> $element.parent().datetimepicker(options)), 0
 		$element.parent().on 'changeDate', (e) ->
 			$scope.$apply ->
 				controller.$setViewValue $element.val()
@@ -38,3 +51,13 @@ module.directive 'ngHasfocus', ->
 		$element.bind 'blur', -> $scope.$apply $attrs.ngHasfocus + " = false"
 		$element.bind 'keydown', (e) -> $scope.$apply $attrs.ngHasfocus + (if e.which is 13 then " = false" else " = true")
 		$element.bind 'focus', () -> $scope.$apply $attrs.ngHasfocus + " = true"
+
+###
+All the data functions here
+###
+
+module.factory 'SpokeURLUtility', () ->
+	extDynamicURL: (baseurl, item) ->
+		if not baseurl or baseurl is '' then return ''
+		if item.key then return baseurl.replace 'spokekeyplaceholder', item.key
+		return baseurl.replace 'spokekeyplaceholder', ''

@@ -23,20 +23,38 @@ If not, see <http://www.gnu.org/licenses/>.
 
   module = angular.module('SpokeUtilities', []);
 
+  module.directive('spSticky', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function($scope, $element, $attrs, $controller) {
+        return $timeout(function() {
+          return $element.sticky({
+            topSpacing: $attrs.topSpacing,
+            bottomSpacing: $attrs.bottomSpacing,
+            className: $attrs.className,
+            wrapperClassName: $attrs.wrapperClassName,
+            getWidthFrom: $attrs.getWidthFrom
+          });
+        }, 10);
+      }
+    };
+  });
+
   module.directive('bsDatetimepicker', function($timeout) {
     return {
       restrict: 'A',
       require: '?ngModel',
       link: function($scope, $element, $attrs, controller) {
-        $scope.options = $attrs.bsDatetimepicker ? $scope.$parent.$eval($attrs.bsDatetimepicker) : {};
-        if (!($scope.options.language != null)) {
-          $scope.options.language = 'en';
+        var options;
+        options = $attrs.bsDatetimepicker ? $scope.$parent.$eval($attrs.bsDatetimepicker) : {};
+        if (!(options.language != null)) {
+          options.language = 'en';
         }
-        if (!($scope.options.pick12HourFormat != null)) {
-          $scope.options.pick12HourFormat = true;
+        if (!(options.pick12HourFormat != null)) {
+          options.pick12HourFormat = true;
         }
         $timeout((function() {
-          return $element.parent().datetimepicker($scope.options);
+          return $element.parent().datetimepicker(options);
         }), 0);
         $element.parent().on('changeDate', function(e) {
           return $scope.$apply(function() {
@@ -63,6 +81,25 @@ If not, see <http://www.gnu.org/licenses/>.
       return $element.bind('focus', function() {
         return $scope.$apply($attrs.ngHasfocus + " = true");
       });
+    };
+  });
+
+  /*
+  All the data functions here
+  */
+
+
+  module.factory('SpokeURLUtility', function() {
+    return {
+      extDynamicURL: function(baseurl, item) {
+        if (!baseurl || baseurl === '') {
+          return '';
+        }
+        if (item.key) {
+          return baseurl.replace('spokekeyplaceholder', item.key);
+        }
+        return baseurl.replace('spokekeyplaceholder', '');
+      }
     };
   });
 

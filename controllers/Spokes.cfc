@@ -24,8 +24,19 @@ If not, see <http://www.gnu.org/licenses/>.
 	
 	<cffunction name="index">
 		<cfscript>
-			StructDelete(APPLICATION, "spokeTypesCache");
 			//if you want to only allow certain users access to the SpokeDM screens - Do it Here!
+			StructDelete(APPLICATION, "spokeTypesCache");//[TODO] - remove testing variable
+			//Logic For redirecting when an editorRoute has been set, or a listRoute
+			if(StructKeyExists(params, "modelkey")){
+				var loc = {};
+				loc.model = CreateObject("component","/models/Spokemodel").spokeAttemptModel(params.modelkey);
+				if(isStruct(loc.model))
+					//editorroute
+					if(StructKeyExists(params, "key") && Len(loc.model.spokeExternalEditorURL(params.key))) return redirectTo(argumentCollection=loc.model.spokeExternalEditorRoute(params.key));
+					//listroute
+					else if(Len(loc.model.spokeExternalListURL())) return redirectTo(argumentCollection=loc.model.spokeExternalListRoute());
+				//if anything errors, just use Spokes standard error catching
+			}
 		</cfscript>
 	</cffunction>
 	
@@ -47,6 +58,8 @@ If not, see <http://www.gnu.org/licenses/>.
 				for(var i = 1; i <= ArrayLen(APPLICATION.spokesearch); i++){
 					var axleModel = model(APPLICATION.spokesearch[i]);
 					var axle = {'active': true, 'key': i, 'title': axleModel.spokeDisplayName(), 'modelkey': APPLICATION.spokesearch[i]};
+					var externalurl = axleModel.spokeExternalEditorURL();
+					if(externalurl != '') axle["externalurl"] = externalurl;
 					ArrayAppend(result, axle);
 				}
 				return renderWith(result);
@@ -80,17 +93,17 @@ If not, see <http://www.gnu.org/licenses/>.
 			if(!isStruct(loc.model)) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
 			if(StructKeyExists(params, "list") && params.list) return renderWith(loc.model.spokeTypeLoad());
 			loc.item = false;
-			loc.modelPerms = loc.model.modelPermissions();
+			loc.modelPerms = loc.model.spokeModelPermissions();
 			if(request.cgi.request_method == "POST"){
 				loc.req = toString(getHttpRequestData().content);	
 				if (isJSON(loc.req)) StructAppend(params, deserializeJSON(loc.req), true);
 				if(params.key == 'new'){
-					if(loc.modelPerms < 3) return renderWith({'errors': [{"message": "You do not have permissions to create a new #model.displayName()#"}]});
+					if(loc.modelPerms < 3) return renderWith({'errors': [{"message": "Can't Touch This! You do not have permissions to create a new #model.displayName()#"}]});
 					loc.item = loc.model.create(params.data);
 				}else{
 					loc.item = loc.model.spokeAttemptFindByKey(params.key);
 					if(isStruct(loc.item)){
-						if(Min(loc.item.instPermissions(), loc.modelPerms) < 2) return renderWith({'errors': [{"message": "You do not have permissions to save this #loc.model.displayName()#"}]});
+						if(Min(loc.item.spokeInstancePermissions(), loc.modelPerms) < 2) return renderWith({'errors': [{"message": "Can't Touch This! You do not have permissions to save this #loc.model.displayName()#"}]});
 						loc.item.setProperties(params.origdata);
 						if(!loc.item.valid()) return renderWith({'errors': loc.item.allErrors()});
 						if(!(StructKeyExists(params, "dirtyforce") && params.dirtyforce) && loc.item.hasChanged()) return renderWith({"dirtywarnings": loc.item.allChanges()});
@@ -98,14 +111,14 @@ If not, see <http://www.gnu.org/licenses/>.
 					}
 					else return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
 				}
-				return renderWith({'errors': loc.item.allErrors(), 'key': loc.item.key()});
+				return renderWith({'errors': loc.item.allErrors(), 'key': loc.item.key(), 'permissions': loc.item.spokePermissions()});
 			}else if(request.cgi.request_method == "GET"){
 				if(loc.modelPerms <= 0) return renderWith({"errors": [{"message": "Maybe you wanted the other moon? (You can't view this)"}]});
 				if(!StructKeyExists(params, "key") || params.key == 'list') return renderWith(loc.model.spokeListLoad());
 				if(params.key == 'new') return renderWith(loc.model.spokeNew());
 				else loc.item = loc.model.spokeAttemptFindByKey(params.key);
 				loc.perms = 0;
-				if(!isStruct(loc.item) || (loc.perms = Min(loc.modelPerms, loc.item.instPermissions())) <= 0) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
+				if(!isStruct(loc.item) || (loc.perms = Min(loc.modelPerms, loc.item.spokeInstancePermissions())) <= 0) return renderWith({"errors": [{"message": "This is not the spoke you are looking for... (We can't find it)"}]});
 				if(StructKeyExists(params, "delete") && params.delete){
 					if(loc.perms < 4) return renderWith({'errors': [{"message": "You do not have permissions to delete this #loc.model.displayName()#"}]});
 					try{
@@ -122,10 +135,24 @@ If not, see <http://www.gnu.org/licenses/>.
 		</cfscript>
 	</cffunction>
 	
-	<cffunction name="inputswitch">
+	<cffunction name="inputswitch" access="private" returnType="struct">
+		<cfargument name="inputswitchclass" required="false" default="inputswitchclass" hint="a class name that is added to each input/switch/textarea etc in the input switch">
 		<cfscript>
-			//we shouldn't be accessing this as it is essentially an angular template, used for code compartmentalisation
-			return redirectTo(action="index");
+			//convert the spoke date time CF strings to work with the plugin
+			arguments.timeformat = REReplaceNoCase(REReplaceNoCase(APPLICATION.spokeTimeformat, "tt", "PP"), "l", "ms");
+			//hh and HH mean opposites in the different formats...
+			if(REFind("H|h", arguments.timeformat)){
+				var tempformat = "";
+				for(var i = 1; i LTE Len(arguments.timeformat); i++){
+					var char = Mid(arguments.timeformat, i, 1);
+					if(char EQ "h") char = "H";
+					else if(char EQ "H") char = "h";
+					tempformat &= char;
+				}
+				arguments.timeformat = tempformat;
+			}
+			arguments.dateformat = APPLICATION.spokeDateformat;
+			return arguments;
 		</cfscript>
 	</cffunction>
 	

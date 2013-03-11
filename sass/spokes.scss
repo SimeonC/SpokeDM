@@ -52,6 +52,42 @@ body{
 [ng-click]{
 	cursor: pointer;
 }
+fieldset{
+	width: 100%;
+}
+.margin-left-small{
+	margin-left: 6px;
+}
+.margin-right-small{
+	margin-right: 6px;
+}
+.margin-top-small{
+	margin-top: 6px;
+}
+.margin-bottom-small{
+	margin-bottom: 6px;
+}
+.margin-small{
+	margin: 6px;
+}
+
+button.btn.only-icon i{//.icon-only gives some odd conflicts with bootstrap so we have to use .only-icon
+	padding-left: .2em;
+}
+
+//angular CSS version of the bootstrap :invalid css
+input.ng-invalid, textarea.ng-invalid, select.ng-invalid {
+	color:#b94a48;
+	border-color:#ee5f5b;
+}
+input.ng-invalid:focus,
+textarea.ng-invalid:focus,
+select.ng-invalid:focus{
+	border-color:#e9322d;
+	-webkit-box-shadow:0 0 6px #f8b9b7;
+	-moz-box-shadow:0 0 6px #f8b9b7;
+	box-shadow:0 0 6px #f8b9b7;
+}
 
 div.spoke-viewport{
 	min-height: 100%;
@@ -201,6 +237,34 @@ div.spoke-viewport{
 			margin-top: $header-height;
 			padding-top: 25px;
 			margin-bottom: $footer-height;
+			
+			form .sticky-wrapper{
+				min-height: 44px;
+				.alert{
+					z-index: 1200;
+					position: relative;
+				}
+				.main-button-wrap{
+					padding: 6px 12px;
+					margin-left: -12px;
+					margin-bottom: 12px;
+					background-color: white;
+				}
+				&.is-sticky > div{
+					z-index: 1200;
+					top: 60px;
+				}
+				&.is-sticky .main-button-wrap, & .alert{
+					box-shadow: 0px 4px 8px 1px #5a5a5a;
+				}
+			}
+			
+			#alerts-padding{
+				margin-bottom: 12px;
+				@include transition-property(height);
+				@include transition-duration(1s);
+				@include transition-timing-function(ease-out);
+			}
 		}
 		&.spoke-footer{
 			height: $footer-height;
@@ -290,7 +354,7 @@ div.spoke-viewport{
 		overflow-y: auto;
 		overflow-x: none;
 		
-		> div{
+		> div:not(.modal){
 			padding: 6px 10px;
 			margin: 3px;
 			
@@ -299,17 +363,17 @@ div.spoke-viewport{
 	
 	div.spoke-parents{
 		div.expander{
-			float: left;
+			position: absolute;
+			left: 12px;
 		}
 		button.btn.parent-link{
 			width: 102px;
 		}
 		button.btn.parent-unlink{
 			margin-right: 6px;
-			padding-right: 4px;
 		}
 		div.title{
-			margin-left: 32px;
+			margin-left: 18px;
 		}
 	}
 	div.spoke-details{
@@ -327,12 +391,20 @@ div.spoke-viewport{
 	div.spoke-children{
 		div.expander{
 			float: right;
+			.badge{
+				padding-right: 20px;
+				i{
+					margin-right: -18px;
+					margin-top: 1px;
+				}
+			}
 			i{
 				margin-right: -3px;
+				float: right;
 			}
 		}
 		div.title{
-			margin-right: 32px;
+			margin-right: 8px;
 		}
 		div.children-list{
 			margin-top: 12px;

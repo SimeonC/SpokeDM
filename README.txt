@@ -77,11 +77,11 @@ WARNING: SpokeDM makes heavy use of aliases, if you are using Railo and parts do
 		@param name: spokeType			required: No	type: boolean	true will display on the front end as a dropdown not a related table
 		@param name: spokeBeforeList	required: No	type: string	the name of a function that returns a string to filter this model when it is shown as a related list, for relating to a new parent.
 	
-	There is also a custom function called listFilter in the Spokemodel.cfc you can overwrite if you wish to filter what objects are shown in a list, for example; by the currently logged in user. It should return a struct that will be passed to a findAll (essentially).
+	There is also a custom function called spokeListFilter in the Spokemodel.cfc you can overwrite if you wish to filter what objects are shown in a list, for example; by the currently logged in user. It should return a struct that will be passed to a findAll (essentially).
 	
 2. If using authentication, permissions or assorted login protocols make sure you look through:
 	spokeCheckLogin in controllers/Controller.cfc
-	modelPermissions and instPermissions in models/Spokemodel.cfc
+	spokeModelPermissions and spokeInstancePermissions in models/Spokemodel.cfc
 	the javascript on the views/Spokes/layout.cfm
 	
 	NOTE: When using encrypted passwords (and we highly recommend you do), either use an external page to edit the model that contains the password or Use onBeforeValidate and afterFind callbacks in the model to encrypt and unencrypt the password. (We reccomend the former)
