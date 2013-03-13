@@ -19,18 +19,20 @@
 <html lang="en">
 	<head>
 		<!--- make sure these tags stay in the header if you modify this page - they are needed for the spoke UI --->
-		<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.min.js"></script>
-	    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular-resource.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+	    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular-resource.min.js"></script>
 	    <!--- bootstrap cdns hosted on MaxCDN - see http://www.bootstrapcdn.com/ --->
-	    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"></script>
-		<link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap.no-icons.min.css" rel="stylesheet">
+	    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/js/bootstrap.min.js"></script>
+		<link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap.no-icons.min.css" rel="stylesheet">
 		<link href="http://netdna.bootstrapcdn.com/font-awesome/3.0/css/font-awesome.css" rel="stylesheet">
 		<link href="http://netdna.bootstrapcdn.com/font-awesome/3.0/css/font-awesome-ie7.css" rel="stylesheet">
 	    <cfoutput>
 			<script type="text/javascript">
-				spokesBaseDataUrl = '#urlFor(route="spokeAjax")#';
-				spokesBaseViewUrl = '#urlFor(route="spoke")#';
+				spokesBaseDataUrl = '#urlFor(route="spokeDataBase")#';
+				spokesLinkDataUrl = '#urlFor(route="spokeLinkBase")#';
+				spokesSearchDataUrl = '#urlFor(route="spokeSearchBase")#';
+				spokesBaseViewUrl = '#urlFor(route="spokes")#';
 				
 				function LoginCtrl($scope){
 					$scope.$on("SpokeUserLoggedOut", function(json){
@@ -39,7 +41,7 @@
 					});
 				}
 			</script>
-	    	#javascriptIncludeTag("spokes,angular.spokes,bootstrap-datetimepicker.min,angular-strap.min")#
+	    	#javascriptIncludeTag("spokes,angular.spokes,logic.spokes,data.spokes,bootstrap-datetimepicker.min,angular-strap.min,jquery.sticky,custom.spokes")#
 	    	#styleSheetLinkTag("spokes,bootstrap-datetimepicker.min")#
 	    </cfoutput>
 	</head>
